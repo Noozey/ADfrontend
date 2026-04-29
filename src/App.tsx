@@ -1,0 +1,29 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginPage, RegisterPage } from './pages/AuthPages';
+import { Dashboard } from './pages/Dashboard';
+import { PartsPage } from './pages/PartsPage';
+import { Layout } from './components/Layout';
+import './style.css';
+
+function ProtectedRoute({ children, roles }: { children: any; roles?: string[] }) {
+  const { user, isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  if (roles && user && !roles.some(role => user.roles.includes(role))) return <Navigate to="/" />;
+  return <Layout>{children}</Layout>;
+}
+
+export function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/parts" element={<ProtectedRoute><PartsPage /></ProtectedRoute>} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
