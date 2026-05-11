@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { Dashboard } from './pages/Dashboard';
 import { PartsPage } from './pages/PartsPage';
+import { UsersPage } from './pages/UsersPage';
+import { SalesPage } from './pages/SalesPage';
 import { Layout } from './components/Layout';
 import './style.css';
 
@@ -22,6 +24,8 @@ export function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/parts" element={<ProtectedRoute><PartsPage /></ProtectedRoute>} />
+          <Route path="/sales" element={<ProtectedRoute roles={['Staff', 'Admin']}><SalesPage /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute roles={['Admin']}><UsersPage /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

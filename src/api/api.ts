@@ -61,4 +61,25 @@ export const partsApi = {
   delete: (id: number) => api.delete(`/parts/${id}`),
 };
 
+export const usersApi = {
+  getAll: () => api.get('/users'),
+  getById: (id: string) => api.get(`/users/${id}`),
+  create: (data: any) => api.post('/users', data),
+  update: (id: string, data: any) => api.put(`/users/${id}`, data),
+  delete: (id: string) => api.delete(`/users/${id}`),
+};
+
+export const customersApi = {
+  getAll: () => api.get('/customers'),
+  getById: (id: number) => api.get(`/customers/${id}`),
+  search: (term: string) => api.get(`/customers/search?term=${encodeURIComponent(term)}`),
+};
+
+export const saleInvoicesApi = {
+  create: (data: any) => api.post('/saleinvoices', data),
+  getAll: () => api.get('/saleinvoices'),
+  getById: (id: number) => api.get(`/saleinvoices/${id}`),
+  getByCustomer: (customerId: number) => api.get(`/saleinvoices/customer/${customerId}`),
+};
+
 export default api;
