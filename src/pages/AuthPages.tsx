@@ -1,8 +1,12 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { api, authApi } from '../api/api';
+import { useAuth } from '@/context/AuthContext';
+import { authApi, api } from '@/api/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -29,85 +33,109 @@ export function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1>Vehicle Parts System</h1>
-        <h2>Login</h2>
-        {error && <div className="error">{error}</div>}
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Vehicle Parts System</CardTitle>
+          <CardDescription className="text-center">Login to your account</CardDescription>
+        </CardHeader>
         <form onSubmit={handleSubmit}>
-          <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
-          <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
-          <button type="submit">Login</button>
+          <CardContent className="space-y-4">
+            {error && <p className="text-sm text-destructive text-center">{error}</p>}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" className="w-full">Login</Button>
+          </CardFooter>
         </form>
-      </div>
+        <div className="px-6 pb-6 text-center text-sm">
+          <span className="text-muted-foreground">Don't have an account? </span>
+          <a href="/register" className="text-primary hover:underline">Register</a>
+        </div>
+      </Card>
     </div>
   );
 }
 
 export function RegisterPage() {
-  const [form, setForm] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    name: '',
-    phone: '',
-    address: '',
-    role: 'Customer' as 'Customer' | 'Staff' | 'Admin',
-  });
+  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', name: '', phone: '', address: '', role: 'Customer' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    if (form.password !== form.confirmPassword) { setError('Passwords do not match'); return; }
     try {
       const { data } = await api.post('/auth/register', {
-        Name: form.name,
-        Email: form.email,
-        Password: form.password,
-        ConfirmPassword: form.confirmPassword,
-        Phone: form.phone,
-        Address: form.address,
-        Role: form.role
+        Name: form.name, Email: form.email, Password: form.password, ConfirmPassword: form.confirmPassword,
+        Phone: form.phone, Address: form.address, Role: form.role
       });
-      if (data.success) {
-        navigate('/login');
-      }
+      if (data.success) navigate('/login');
     } catch (err: any) {
       const errors = err.response?.data?.errors;
-      let errorMsg = err.response?.data?.message || 'Registration failed';
-      if (errors) {
-        errorMsg = Object.values(errors).flat().join(' ');
-      }
-      setError(errorMsg);
+      setError(errors ? Object.values(errors).flat().join(' ') : err.response?.data?.message || 'Registration failed');
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1>Vehicle Parts System</h1>
-        <h2>Register</h2>
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Vehicle Parts System</CardTitle>
+          <CardDescription className="text-center">Create a new account</CardDescription>
+        </CardHeader>
         <form onSubmit={handleSubmit}>
-          <input type="text" placeholder="Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-          <input type="email" placeholder="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
-          <input type="password" placeholder="Password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
-          <input type="password" placeholder="Confirm Password" value={form.confirmPassword} onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))} required />
-          <input type="text" placeholder="Phone (optional)" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-          <input type="text" placeholder="Address (optional)" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
-          <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value as 'Customer' | 'Staff' | 'Admin' }))} required>
-            <option value="Customer">Customer</option>
-            <option value="Staff">Staff</option>
-            <option value="Admin">Admin</option>
-          </select>
-          <button type="submit">Register</button>
+          <CardContent className="space-y-4">
+            {error && <p className="text-sm text-destructive text-center">{error}</p>}
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input id="confirmPassword" type="password" value={form.confirmPassword} onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone</Label>
+              <Input id="phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select value={form.role} onValueChange={value => setForm(f => ({ ...f, role: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Customer">Customer</SelectItem>
+                  <SelectItem value="Staff">Staff</SelectItem>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button type="submit" className="w-full">Register</Button>
+            <p className="text-sm text-center text-muted-foreground">
+              Already have an account? <a href="/login" className="text-primary hover:underline">Login</a>
+            </p>
+          </CardFooter>
         </form>
-        {error && <div className="error">{error}</div>}
-        <p>Already have an account? <a href="/login">Login</a></p>
-      </div>
+      </Card>
     </div>
   );
 }
