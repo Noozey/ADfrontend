@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LoginPage, RegisterPage } from "./pages/AuthPages";
 import { Dashboard } from "./pages/Dashboard";
 import { PartsPage } from "./pages/PartsPage";
+import { CustomersPage } from "./pages/CustomersPage";
 import { UsersPage } from "./pages/UsersPage";
 import { SalesPage } from "./pages/SalesPage";
 import { Layout } from "./components/Layout";
@@ -42,8 +43,16 @@ export function App() {
           <Route
             path="/parts"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={["Staff", "Admin"]}>
                 <PartsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customers"
+            element={
+              <ProtectedRoute roles={["Staff", "Admin"]}>
+                <CustomersPage />
               </ProtectedRoute>
             }
           />
