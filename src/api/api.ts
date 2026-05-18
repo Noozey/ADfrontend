@@ -115,18 +115,172 @@ export const usersApi = {
 };
 
 export const customersApi = {
-  getAll: () => api.get("/customers"),
-  getById: (id: number) => api.get(`/customers/${id}`),
+  getAll: () => api.get<CustomerDto[]>("/customers"),
+  getById: (id: number) => api.get<CustomerDto>(`/customers/${id}`),
+  getOverview: (id: number) => api.get(`/customers/${id}/overview`),
+  getHistory: (id: number) => api.get(`/customers/${id}/history`),
   search: (term: string) =>
-    api.get(`/customers/search?term=${encodeURIComponent(term)}`),
+    api.get<CustomerDto[]>(`/customers/search?term=${encodeURIComponent(term)}`),
 };
+
+export interface SaleInvoiceItemDto {
+  itemId: number;
+  partId: number;
+  partName: string;
+  quantity: number;
+  unitPriceAtSale: number;
+  lineTotal: number;
+}
+
+export interface SaleInvoiceDto {
+  invoiceId: number;
+  customerId: string;
+  customerName: string;
+  staffId: string;
+  staffName: string;
+  saleDate: string;
+  dueDate: string;
+  subtotal: number;
+  discountAmount: number;
+  totalAmount: number;
+  paymentStatus: string;
+  items: SaleInvoiceItemDto[];
+}
+
+export interface CustomerDto {
+  customerId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+}
 
 export const saleInvoicesApi = {
   create: (data: any) => api.post("/saleinvoices", data),
-  getAll: () => api.get("/saleinvoices"),
-  getById: (id: number) => api.get(`/saleinvoices/${id}`),
+  getAll: () => api.get<SaleInvoiceDto[]>("/saleinvoices"),
+  getById: (id: number) => api.get<SaleInvoiceDto>(`/saleinvoices/${id}`),
+  getByCustomer: (customerId: string) =>
+    api.get<SaleInvoiceDto[]>(`/saleinvoices/customer/${customerId}`),
+};
+
+export interface HighSpenderReportDto {
+  customerId: string;
+  customerName: string;
+  email: string | null;
+  phone: string | null;
+  totalSpent: number;
+  lastPurchaseDate: string;
+}
+
+export interface RegularCustomerReportDto {
+  customerId: string;
+  customerName: string;
+  email: string | null;
+  phone: string | null;
+  totalInvoices: number;
+  firstPurchaseDate: string;
+  lastPurchaseDate: string;
+}
+
+export interface PendingCreditReportDto {
+  customerId: string;
+  customerName: string;
+  email: string | null;
+  phone: string | null;
+  invoiceId: number;
+  invoiceDate: string;
+  dueDate: string;
+  totalAmount: number;
+  paymentStatus: string;
+  daysOverdue: number | null;
+}
+
+export const customerReportsApi = {
+  getHighSpenders: (fromDate?: string, toDate?: string) =>
+    api.get<HighSpenderReportDto[]>("/CustomerReports/high-spenders", {
+      params: { fromDate, toDate },
+    }),
+  getRegularCustomers: (fromDate?: string, toDate?: string) =>
+    api.get<RegularCustomerReportDto[]>("/CustomerReports/regular-customers", {
+      params: { fromDate, toDate },
+    }),
+  getPendingCredits: (fromDate?: string, toDate?: string) =>
+    api.get<PendingCreditReportDto[]>("/CustomerReports/pending-credits", {
+      params: { fromDate, toDate },
+    }),
+};
+
+export interface VehicleDto {
+  vehicleId: number;
+  vehicleNumber: string;
+  make: string;
+  model: string;
+  mileage: number;
+}
+
+export interface AppointmentDto {
+  appointmentId: number;
+  customerId: string;
+  customerName: string;
+  vehicleId: number;
+  vehicleNumber: string;
+  appointmentDate: string;
+  description: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export interface ReviewDto {
+  id: number;
+  customerName: string;
+  appointmentId: number;
+  content: string;
+  rating: number | null;
+  createdAt: string;
+}
+
+export interface PartRequestDto {
+  id: number;
+  customerName: string;
+  partName: string;
+  description: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export const vehiclesApi = {
+  create: (data: { vehicleNumber: string; make: string; model: string; mileage: number }) =>
+    api.post<VehicleDto>("/vehicles", data),
+  getMine: () => api.get<VehicleDto[]>("/vehicles/mine"),
   getByCustomer: (customerId: number) =>
-    api.get(`/saleinvoices/customer/${customerId}`),
+    api.get(`/vehicles/customer/${customerId}`),
+  delete: (id: number) => api.delete(`/vehicles/mine/${id}`),
+};
+
+export const appointmentsApi = {
+  book: (data: { vehicleId: number; appointmentDate: string; description?: string }) =>
+    api.post<AppointmentDto>("/appointments", data),
+  getMine: () => api.get<AppointmentDto[]>("/appointments/mine"),
+  cancel: (id: number) => api.put(`/appointments/${id}/cancel`, {}),
+  getAll: () => api.get<AppointmentDto[]>("/appointments"),
+  updateStatus: (id: number, status: string) =>
+    api.put<AppointmentDto>(`/appointments/${id}/status`, { status }),
+};
+
+export const reviewsApi = {
+  create: (data: { appointmentId: number; content: string; rating?: number }) =>
+    api.post<ReviewDto>("/reviews", data),
+  getMine: () => api.get<ReviewDto[]>("/reviews/mine"),
+  getAll: () => api.get<ReviewDto[]>("/reviews"),
+};
+
+export const partRequestsApi = {
+  submit: (data: { partName: string; description?: string }) =>
+    api.post<PartRequestDto>("/partrequests", data),
+  getMine: () => api.get<PartRequestDto[]>("/partrequests/mine"),
+  getAll: () => api.get<PartRequestDto[]>("/partrequests"),
+  updateStatus: (id: number, status: string) =>
+    api.put<PartRequestDto>(`/partrequests/${id}/status`, { status }),
 };
 
 export const profileApi = {

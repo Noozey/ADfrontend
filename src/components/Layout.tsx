@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/sidebar";
 import { useLowStockCount } from "@/hooks/useLowStockCount";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { user, logout, isAdmin, isStaff } = useAuth();
+  const { user, logout, isAdmin, isStaff, isCustomer } = useAuth();
   const location = useLocation();
   const lowStockCount = useLowStockCount();
 
@@ -28,24 +28,72 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Separator />
           <SidebarGroup>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/"}>
-                  <Link to="/">Dashboard</Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {isCustomer && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/my-vehicles"}>
+                      <Link to="/my-vehicles">My Vehicles</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/book-appointment"}>
+                      <Link to="/book-appointment">Book Appointment</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/my-appointments"}>
+                      <Link to="/my-appointments">Appointments</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/request-part"}>
+                      <Link to="/request-part">Request Part</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/my-requests"}>
+                      <Link to="/my-requests">My Requests</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/reviews"}>
+                      <Link to="/reviews">Reviews</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+              {!isCustomer && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname === "/"}>
+                    <Link to="/">Dashboard</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={location.pathname === "/"}>
                   <Link to="/Profile">Profile</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname === "/parts"}
-                >
-                  <Link to="/parts">Parts</Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {(isStaff || isAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/parts"}
+                  >
+                    <Link to="/parts">Parts</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {(isStaff || isAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/customers"}
+                  >
+                    <Link to="/customers">Customers</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {(isStaff || isAdmin) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -53,6 +101,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     isActive={location.pathname === "/sales"}
                   >
                     <Link to="/sales">Sales</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {(isStaff || isAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/appointments"}
+                  >
+                    <Link to="/appointments">Appointments</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {(isStaff || isAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/invoices"}
+                  >
+                    <Link to="/invoices">Invoices</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
@@ -67,6 +135,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuItem>
               )}
 
+              {(isStaff || isAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/customerreports"}
+                  >
+                    <Link to="/customerreports">Customers</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {isAdmin && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -96,7 +174,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </SidebarGroup>
           <SidebarFooter>
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="text-sm text-muted-foreground break-words">
               {user?.email}
             </p>
             <button
