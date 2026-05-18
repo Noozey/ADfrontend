@@ -117,8 +117,15 @@ export const usersApi = {
 export const customersApi = {
   getAll: () => api.get("/customers"),
   getById: (id: number) => api.get(`/customers/${id}`),
+  getOverview: (id: number) => api.get(`/customers/${id}/overview`),
+  getHistory: (id: number) => api.get(`/customers/${id}/history`),
   search: (term: string) =>
     api.get(`/customers/search?term=${encodeURIComponent(term)}`),
+};
+
+export const vehiclesApi = {
+  getByCustomer: (customerId: number) =>
+    api.get(`/vehicles/customer/${customerId}`),
 };
 
 export const saleInvoicesApi = {

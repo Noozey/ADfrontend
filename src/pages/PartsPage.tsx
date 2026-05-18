@@ -68,7 +68,7 @@ export function PartsPage() {
 
       setShowModal(false);
       setEditingPart(null);
-      setForm({ name: '', description: '', price: '', stockQuantity: '', partNumber: '', imageUrl: '' });
+      setForm({ name: '', description: '', price: '', stockQuantity: '', category: 'Oil', partNumber: '', imageUrl: '' });
       loadParts();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save part');
