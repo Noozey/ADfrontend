@@ -9,6 +9,7 @@ import { Layout } from "./components/Layout";
 import "./style.css";
 import FinancialReport from "./pages/Financial";
 import ProfileEdit from "./pages/ProfileEdit";
+import { LowStockNotifications } from "./pages/LowStockNotification";
 
 function ProtectedRoute({
   children,
@@ -77,6 +78,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <ProfileEdit />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notification"
+            element={
+              <ProtectedRoute>
+                <LowStockNotifications />
               </ProtectedRoute>
             }
           />

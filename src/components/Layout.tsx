@@ -11,10 +11,12 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/sidebar";
+import { useLowStockCount } from "@/hooks/useLowStockCount";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout, isAdmin, isStaff } = useAuth();
   const location = useLocation();
+  const lowStockCount = useLowStockCount();
 
   return (
     <div className="flex h-screen w-full">
@@ -74,6 +76,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <Link to="/financialreport">Finance</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+              )}
+              {isAdmin && (
+                <SidebarMenuButton
+                  asChild
+                  isActive={location.pathname === "/notification"}
+                >
+                  <Link to="/notification" className="flex items-center w-full">
+                    <span>Notification</span>
+
+                    {lowStockCount > 0 && (
+                      <span className="ml-auto text-xs bg-red-500 text-white px-2 rounded-full">
+                        {lowStockCount}
+                      </span>
+                    )}
+                  </Link>
+                </SidebarMenuButton>
               )}
             </SidebarMenu>
           </SidebarGroup>

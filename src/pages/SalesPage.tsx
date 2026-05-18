@@ -1,15 +1,40 @@
-import { useState, useEffect } from 'react';
-import { partsApi, customersApi, saleInvoicesApi } from '@/api/api';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Plus, Trash2, Search, CheckCircle, XCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { partsApi, customersApi, saleInvoicesApi } from "@/api/api";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  ShoppingCart,
+  Plus,
+  Trash2,
+  Search,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 
 interface Part {
   partId: number;
@@ -54,12 +79,12 @@ export function SalesPage() {
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [parts, setParts] = useState<Part[]>([]);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [partSearch, setPartSearch] = useState('');
+  const [partSearch, setPartSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
   const [showInvoice, setShowInvoice] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -72,77 +97,87 @@ export function SalesPage() {
     try {
       const [customersRes, partsRes] = await Promise.all([
         customersApi.getAll(),
-        partsApi.getAll()
+        partsApi.getAll(),
       ]);
       setCustomers(customersRes.data);
       setParts(partsRes.data);
     } catch (err) {
-      console.error('Failed to load data', err);
-      setError('Failed to load data');
+      console.error("Failed to load data", err);
+      setError("Failed to load data");
     } finally {
       setLoading(false);
     }
   };
 
   const addToCart = (part: Part) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.partId === part.partId);
+    setCart((prev) => {
+      const existing = prev.find((item) => item.partId === part.partId);
       if (existing) {
-        return prev.map(item =>
+        return prev.map((item) =>
           item.partId === part.partId
             ? { ...item, quantity: item.quantity + 1 }
-            : item
+            : item,
         );
       }
-      return [...prev, {
-        partId: part.partId,
-        partName: part.name,
-        unitPrice: part.price,
-        quantity: 1,
-        stockAvailable: part.stockQuantity
-      }];
+      return [
+        ...prev,
+        {
+          partId: part.partId,
+          partName: part.name,
+          unitPrice: part.price,
+          quantity: 1,
+          stockAvailable: part.stockQuantity,
+        },
+      ];
     });
   };
 
   const updateQuantity = (partId: number, quantity: number) => {
     if (quantity < 1) return;
-    setCart(prev =>
-      prev.map(item =>
-        item.partId === partId ? { ...item, quantity } : item
-      )
+    setCart((prev) =>
+      prev.map((item) =>
+        item.partId === partId ? { ...item, quantity } : item,
+      ),
     );
   };
 
   const removeFromCart = (partId: number) => {
-    setCart(prev => prev.filter(item => item.partId !== partId));
+    setCart((prev) => prev.filter((item) => item.partId !== partId));
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-  const discount = subtotal > 5000 ? subtotal * 0.10 : 0;
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.unitPrice * item.quantity,
+    0,
+  );
+  const discount = subtotal > 5000 ? subtotal * 0.1 : 0;
   const total = subtotal - discount;
 
-  const filteredParts = parts.filter(p =>
-    p.name.toLowerCase().includes(partSearch.toLowerCase()) ||
-    (p.partNumber && p.partNumber.toLowerCase().includes(partSearch.toLowerCase()))
+  const filteredParts = parts.filter(
+    (p) =>
+      p.name.toLowerCase().includes(partSearch.toLowerCase()) ||
+      (p.partNumber &&
+        p.partNumber.toLowerCase().includes(partSearch.toLowerCase())),
   );
 
   const handleCreateInvoice = async () => {
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (!selectedCustomerId) {
-      setError('Please select a customer');
+      setError("Please select a customer");
       return;
     }
     if (cart.length === 0) {
-      setError('Please add at least one item to the cart');
+      setError("Please add at least one item to the cart");
       return;
     }
 
     // Validate stock
     for (const item of cart) {
       if (item.quantity > item.stockAvailable) {
-        setError(`Insufficient stock for ${item.partName}. Available: ${item.stockAvailable}`);
+        setError(
+          `Insufficient stock for ${item.partName}. Available: ${item.stockAvailable}`,
+        );
         return;
       }
     }
@@ -151,10 +186,10 @@ export function SalesPage() {
     try {
       const dto = {
         customerId: parseInt(selectedCustomerId),
-        items: cart.map(item => ({
+        items: cart.map((item) => ({
           partId: item.partId,
-          quantity: item.quantity
-        }))
+          quantity: item.quantity,
+        })),
       };
 
       const res = await saleInvoicesApi.create(dto);
@@ -162,10 +197,13 @@ export function SalesPage() {
       setShowInvoice(true);
       setSuccess(`Invoice #${res.data.invoiceId} created successfully!`);
       setCart([]);
-      setSelectedCustomerId('');
+      setSelectedCustomerId("");
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.response?.data || 'Failed to create invoice';
-      setError(typeof msg === 'string' ? msg : 'Failed to create invoice');
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        "Failed to create invoice";
+      setError(typeof msg === "string" ? msg : "Failed to create invoice");
     } finally {
       setSubmitting(false);
     }
@@ -177,7 +215,9 @@ export function SalesPage() {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Sales</h1>
-        <p className="text-muted-foreground mt-1">Create sales invoices for customers.</p>
+        <p className="text-muted-foreground mt-1">
+          Create sales invoices for customers.
+        </p>
       </div>
 
       {error && (
@@ -203,20 +243,28 @@ export function SalesPage() {
               <CardTitle className="text-lg">Select Customer</CardTitle>
             </CardHeader>
             <CardContent>
-              <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
+              <Select
+                value={selectedCustomerId}
+                onValueChange={setSelectedCustomerId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a customer..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.map(c => (
-                    <SelectItem key={c.customerId} value={c.customerId.toString()}>
+                  {customers.map((c) => (
+                    <SelectItem
+                      key={c.customerId}
+                      value={c.customerId.toString()}
+                    >
                       {c.name} ({c.email})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {customers.length === 0 && (
-                <p className="text-sm text-muted-foreground mt-2">No customers found. Add customers first.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  No customers found. Add customers first.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -232,7 +280,7 @@ export function SalesPage() {
                 <Input
                   placeholder="Search parts by name or part number..."
                   value={partSearch}
-                  onChange={e => setPartSearch(e.target.value)}
+                  onChange={(e) => setPartSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -249,13 +297,21 @@ export function SalesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredParts.map(part => (
+                    {filteredParts.map((part) => (
                       <TableRow key={part.partId}>
-                        <TableCell className="font-medium">{part.name}</TableCell>
-                        <TableCell>{part.partNumber || '-'}</TableCell>
+                        <TableCell className="font-medium">
+                          {part.name}
+                        </TableCell>
+                        <TableCell>{part.partNumber || "-"}</TableCell>
                         <TableCell>${part.price.toFixed(2)}</TableCell>
                         <TableCell>
-                          <span className={part.stockQuantity < 10 ? 'text-destructive font-semibold' : ''}>
+                          <span
+                            className={
+                              part.stockQuantity < 10
+                                ? "text-destructive font-semibold"
+                                : ""
+                            }
+                          >
                             {part.stockQuantity}
                           </span>
                         </TableCell>
@@ -272,7 +328,10 @@ export function SalesPage() {
                     ))}
                     {filteredParts.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        <TableCell
+                          colSpan={5}
+                          className="text-center text-muted-foreground"
+                        >
                           No parts found.
                         </TableCell>
                       </TableRow>
@@ -295,14 +354,23 @@ export function SalesPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {cart.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Cart is empty. Add parts from the left panel.</p>
+                <p className="text-sm text-muted-foreground">
+                  Cart is empty. Add parts from the left panel.
+                </p>
               ) : (
                 <div className="space-y-4">
-                  {cart.map(item => (
-                    <div key={item.partId} className="flex items-center gap-2 pb-3 border-b last:border-0">
+                  {cart.map((item) => (
+                    <div
+                      key={item.partId}
+                      className="flex items-center gap-2 pb-3 border-b last:border-0"
+                    >
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.partName}</p>
-                        <p className="text-xs text-muted-foreground">${item.unitPrice.toFixed(2)} each</p>
+                        <p className="text-sm font-medium truncate">
+                          {item.partName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          ${item.unitPrice.toFixed(2)} each
+                        </p>
                       </div>
                       <div className="flex items-center gap-1">
                         <Input
@@ -310,14 +378,24 @@ export function SalesPage() {
                           min={1}
                           max={item.stockAvailable}
                           value={item.quantity}
-                          onChange={e => updateQuantity(item.partId, parseInt(e.target.value) || 1)}
+                          onChange={(e) =>
+                            updateQuantity(
+                              item.partId,
+                              parseInt(e.target.value) || 1,
+                            )
+                          }
                           className="w-16 h-8 text-center"
                         />
                       </div>
                       <p className="text-sm font-medium w-16 text-right">
                         ${(item.unitPrice * item.quantity).toFixed(2)}
                       </p>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.partId)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => removeFromCart(item.partId)}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
@@ -333,8 +411,12 @@ export function SalesPage() {
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Discount {subtotal > 5000 ? '(10% loyalty)' : ''}</span>
-                    <span className="text-green-600">-${discount.toFixed(2)}</span>
+                    <span>
+                      Discount {subtotal > 5000 ? "(10% loyalty)" : ""}
+                    </span>
+                    <span className="text-green-600">
+                      -${discount.toFixed(2)}
+                    </span>
                   </div>
                   {subtotal > 5000 && (
                     <Badge variant="secondary" className="text-xs">
@@ -352,9 +434,11 @@ export function SalesPage() {
                 <Button
                   className="w-full"
                   onClick={handleCreateInvoice}
-                  disabled={submitting || cart.length === 0 || !selectedCustomerId}
+                  disabled={
+                    submitting || cart.length === 0 || !selectedCustomerId
+                  }
                 >
-                  {submitting ? 'Creating...' : 'Create Invoice'}
+                  {submitting ? "Creating..." : "Create Invoice"}
                 </Button>
               )}
             </CardContent>
@@ -377,7 +461,9 @@ export function SalesPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Date</p>
-                  <p className="font-medium">{new Date(invoice.saleDate).toLocaleString()}</p>
+                  <p className="font-medium">
+                    {new Date(invoice.saleDate).toLocaleString()}
+                  </p>
                 </div>
               </div>
 
@@ -394,9 +480,15 @@ export function SalesPage() {
                   {invoice.items.map((item, i) => (
                     <TableRow key={i}>
                       <TableCell>{item.partName}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">${item.unitPriceAtSale.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">${item.lineTotal.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        {item.quantity}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${item.unitPriceAtSale.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${item.lineTotal.toFixed(2)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
