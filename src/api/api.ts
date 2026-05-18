@@ -59,6 +59,31 @@ export interface RegisterData {
   role: "Customer" | "Staff" | "Admin";
 }
 
+export interface ProfileResponse {
+  success: boolean;
+  message?: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+}
+
+export interface UpdateNamePayload {
+  fullName: string;
+}
+export interface UpdateEmailPayload {
+  newEmail: string;
+  currentPassword: string;
+}
+export interface UpdatePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+export interface UpdatePhonePayload {
+  phoneNumber: string;
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<AuthResponse>("/auth/login", { email, password }),
@@ -102,6 +127,18 @@ export const saleInvoicesApi = {
   getById: (id: number) => api.get(`/saleinvoices/${id}`),
   getByCustomer: (customerId: number) =>
     api.get(`/saleinvoices/customer/${customerId}`),
+};
+
+export const profileApi = {
+  get: () => api.get<ProfileResponse>("/profile"),
+  updateName: (data: UpdateNamePayload) =>
+    api.patch<ProfileResponse>("/profile/name", data),
+  updateEmail: (data: UpdateEmailPayload) =>
+    api.patch<ProfileResponse>("/profile/email", data),
+  updatePassword: (data: UpdatePasswordPayload) =>
+    api.patch<ProfileResponse>("/profile/password", data),
+  updatePhone: (data: UpdatePhonePayload) =>
+    api.patch<ProfileResponse>("/profile/phone", data),
 };
 
 export default api;

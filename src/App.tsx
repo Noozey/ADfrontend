@@ -8,6 +8,7 @@ import { SalesPage } from "./pages/SalesPage";
 import { Layout } from "./components/Layout";
 import "./style.css";
 import FinancialReport from "./pages/Financial";
+import ProfileEdit from "./pages/ProfileEdit";
 
 function ProtectedRoute({
   children,
@@ -67,6 +68,15 @@ export function App() {
             element={
               <ProtectedRoute roles={["Admin"]}>
                 <FinancialReport />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfileEdit />
               </ProtectedRoute>
             }
           />

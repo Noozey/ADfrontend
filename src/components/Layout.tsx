@@ -32,6 +32,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/"}>
+                  <Link to="/Profile">Profile</Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
                   isActive={location.pathname === "/parts"}
