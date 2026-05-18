@@ -9,7 +9,7 @@ import { Search, UserRound, Car, History, XCircle } from 'lucide-react';
 
 interface Customer {
   customerId: string;
-  id?: number;
+  id?: string | number;
   name?: string;
   fullName?: string;
   email?: string;
@@ -70,7 +70,7 @@ export function CustomersPage() {
     loadCustomers();
   }, []);
 
-  const getCustomerId = (customer: Customer) => Number(customer.customerId || customer.id || 0);
+  const getCustomerId = (customer: Customer) => customer.customerId || customer.id?.toString() || '';
   const getCustomerName = (customer: Customer) => customer.name || customer.fullName || 'Unknown customer';
   const getCustomerPhone = (customer: Customer) => customer.phoneNumber || customer.phone || '-';
 

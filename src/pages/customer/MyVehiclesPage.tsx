@@ -28,8 +28,14 @@ export function MyVehiclesPage() {
   };
 
   const addVehicle = async () => {
+    setError("");
+    setSuccess("");
+    if (!newVehicle.vehicleNumber || !newVehicle.make || !newVehicle.model) {
+      setError("Enter vehicle number, make, and model");
+      return;
+    }
     try {
-      const res = await vehiclesApi.create(newVehicle);
+      const res = await vehiclesApi.createMine(newVehicle);
       setVehicles([...vehicles, res.data]);
       setNewVehicle({ vehicleNumber: "", make: "", model: "", mileage: 0 });
       setSuccess("Vehicle added");
