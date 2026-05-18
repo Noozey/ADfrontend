@@ -68,13 +68,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuItem>
               )}
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname === "/parts"}
-                >
-                  <Link to="/parts">Parts</Link>
+                <SidebarMenuButton asChild isActive={location.pathname === "/"}>
+                  <Link to="/Profile">Profile</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {(isStaff || isAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/parts"}
+                  >
+                    <Link to="/parts">Parts</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {(isStaff || isAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/customers"}
+                  >
+                    <Link to="/customers">Customers</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {(isStaff || isAdmin) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton

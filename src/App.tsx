@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LoginPage, RegisterPage } from "./pages/AuthPages";
 import { Dashboard } from "./pages/Dashboard";
 import { PartsPage } from "./pages/PartsPage";
+import { CustomersPage } from "./pages/CustomersPage";
 import { UsersPage } from "./pages/UsersPage";
 import { SalesPage } from "./pages/SalesPage";
 import { Layout } from "./components/Layout";
@@ -17,6 +18,7 @@ import { MyAppointmentsPage } from "./pages/customer/MyAppointmentsPage";
 import { RequestPartPage } from "./pages/customer/RequestPartPage";
 import { MyRequestsPage } from "./pages/customer/MyRequestsPage";
 import { ReviewsPage } from "./pages/customer/ReviewsPage";
+import ProfileEdit from "./pages/ProfileEdit";
 
 function ProtectedRoute({
   children,
@@ -108,8 +110,16 @@ export function App() {
           <Route
             path="/parts"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={["Staff", "Admin"]}>
                 <PartsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customers"
+            element={
+              <ProtectedRoute roles={["Staff", "Admin"]}>
+                <CustomersPage />
               </ProtectedRoute>
             }
           />
@@ -158,6 +168,15 @@ export function App() {
             element={
               <ProtectedRoute roles={["Admin"]}>
                 <FinancialReport />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfileEdit />
               </ProtectedRoute>
             }
           />

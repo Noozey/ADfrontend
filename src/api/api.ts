@@ -59,6 +59,31 @@ export interface RegisterData {
   role: "Customer" | "Staff" | "Admin";
 }
 
+export interface ProfileResponse {
+  success: boolean;
+  message?: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+}
+
+export interface UpdateNamePayload {
+  fullName: string;
+}
+export interface UpdateEmailPayload {
+  newEmail: string;
+  currentPassword: string;
+}
+export interface UpdatePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+export interface UpdatePhonePayload {
+  phoneNumber: string;
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<AuthResponse>("/auth/login", { email, password }),
@@ -91,7 +116,9 @@ export const usersApi = {
 
 export const customersApi = {
   getAll: () => api.get<CustomerDto[]>("/customers"),
-  getById: (id: string) => api.get<CustomerDto>(`/customers/${id}`),
+  getById: (id: number) => api.get<CustomerDto>(`/customers/${id}`),
+  getOverview: (id: number) => api.get(`/customers/${id}/overview`),
+  getHistory: (id: number) => api.get(`/customers/${id}/history`),
   search: (term: string) =>
     api.get<CustomerDto[]>(`/customers/search?term=${encodeURIComponent(term)}`),
 };
@@ -225,6 +252,8 @@ export const vehiclesApi = {
   create: (data: { vehicleNumber: string; make: string; model: string; mileage: number }) =>
     api.post<VehicleDto>("/vehicles", data),
   getMine: () => api.get<VehicleDto[]>("/vehicles/mine"),
+  getByCustomer: (customerId: number) =>
+    api.get(`/vehicles/customer/${customerId}`),
   delete: (id: number) => api.delete(`/vehicles/mine/${id}`),
 };
 
@@ -252,6 +281,18 @@ export const partRequestsApi = {
   getAll: () => api.get<PartRequestDto[]>("/partrequests"),
   updateStatus: (id: number, status: string) =>
     api.put<PartRequestDto>(`/partrequests/${id}/status`, { status }),
+};
+
+export const profileApi = {
+  get: () => api.get<ProfileResponse>("/profile"),
+  updateName: (data: UpdateNamePayload) =>
+    api.patch<ProfileResponse>("/profile/name", data),
+  updateEmail: (data: UpdateEmailPayload) =>
+    api.patch<ProfileResponse>("/profile/email", data),
+  updatePassword: (data: UpdatePasswordPayload) =>
+    api.patch<ProfileResponse>("/profile/password", data),
+  updatePhone: (data: UpdatePhonePayload) =>
+    api.patch<ProfileResponse>("/profile/phone", data),
 };
 
 export default api;
