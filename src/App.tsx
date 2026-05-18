@@ -8,6 +8,15 @@ import { SalesPage } from "./pages/SalesPage";
 import { Layout } from "./components/Layout";
 import "./style.css";
 import FinancialReport from "./pages/Financial";
+import CustomerReports from "./pages/CustomerReports";
+import InvoicesPage from "./pages/InvoicesPage";
+import ManageAppointments from "./pages/ManageAppointments";
+import { MyVehiclesPage } from "./pages/customer/MyVehiclesPage";
+import { BookAppointmentPage } from "./pages/customer/BookAppointmentPage";
+import { MyAppointmentsPage } from "./pages/customer/MyAppointmentsPage";
+import { RequestPartPage } from "./pages/customer/RequestPartPage";
+import { MyRequestsPage } from "./pages/customer/MyRequestsPage";
+import { ReviewsPage } from "./pages/customer/ReviewsPage";
 
 function ProtectedRoute({
   children,
@@ -16,11 +25,21 @@ function ProtectedRoute({
   children: any;
   roles?: string[];
 }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isCustomer, isStaff, isAdmin } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (roles && user && !roles.some((role) => user.roles.includes(role)))
-    return <Navigate to="/" />;
+  if (roles && user && !roles.some((role) => user.roles.includes(role))) {
+    if (isCustomer) return <Navigate to="/my-vehicles" />;
+    if (isStaff) return <Navigate to="/sales" />;
+    return <Navigate to="/users" />;
+  }
   return <Layout>{children}</Layout>;
+}
+
+function HomeRedirect() {
+  const { isAuthenticated, isCustomer } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  if (isCustomer) return <Navigate to="/my-vehicles" />;
+  return <Dashboard />;
 }
 
 export function App() {
@@ -34,7 +53,55 @@ export function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <HomeRedirect />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-vehicles"
+            element={
+              <ProtectedRoute roles={["Customer"]}>
+                <MyVehiclesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/book-appointment"
+            element={
+              <ProtectedRoute roles={["Customer"]}>
+                <BookAppointmentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-appointments"
+            element={
+              <ProtectedRoute roles={["Customer"]}>
+                <MyAppointmentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/request-part"
+            element={
+              <ProtectedRoute roles={["Customer"]}>
+                <RequestPartPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-requests"
+            element={
+              <ProtectedRoute roles={["Customer"]}>
+                <MyRequestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reviews"
+            element={
+              <ProtectedRoute roles={["Customer"]}>
+                <ReviewsPage />
               </ProtectedRoute>
             }
           />
@@ -59,6 +126,30 @@ export function App() {
             element={
               <ProtectedRoute roles={["Admin"]}>
                 <UsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customerreports"
+            element={
+              <ProtectedRoute roles={["Staff", "Admin"]}>
+                <CustomerReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/invoices"
+            element={
+              <ProtectedRoute roles={["Staff", "Admin"]}>
+                <InvoicesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/appointments"
+            element={
+              <ProtectedRoute roles={["Staff", "Admin"]}>
+                <ManageAppointments />
               </ProtectedRoute>
             }
           />

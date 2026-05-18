@@ -20,7 +20,7 @@ interface Part {
 }
 
 interface Customer {
-  customerId: number;
+  customerId: string;
   name: string;
   email: string;
 }
@@ -37,9 +37,11 @@ interface InvoiceDetail {
   invoiceId: number;
   customerName: string;
   saleDate: string;
+  dueDate: string;
   subtotal: number;
   discountAmount: number;
   totalAmount: number;
+  paymentStatus: string;
   items: {
     partName: string;
     quantity: number;
@@ -62,6 +64,8 @@ export function SalesPage() {
   const [success, setSuccess] = useState('');
   const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState("Paid");
+  const [dueDate, setDueDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -81,6 +85,15 @@ export function SalesPage() {
       setError('Failed to load data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadParts = async () => {
+    try {
+      const res = await partsApi.getAll();
+      setParts(res.data);
+    } catch (err) {
+      console.error('Failed to reload parts', err);
     }
   };
 
@@ -150,7 +163,9 @@ export function SalesPage() {
     setSubmitting(true);
     try {
       const dto = {
-        customerId: parseInt(selectedCustomerId),
+        customerId: selectedCustomerId,
+        paymentStatus,
+        dueDate: dueDate || undefined,
         items: cart.map(item => ({
           partId: item.partId,
           quantity: item.quantity
@@ -163,6 +178,9 @@ export function SalesPage() {
       setSuccess(`Invoice #${res.data.invoiceId} created successfully!`);
       setCart([]);
       setSelectedCustomerId('');
+      setPaymentStatus("Paid");
+      setDueDate("");
+      await loadParts();
     } catch (err: any) {
       const msg = err.response?.data?.message || err.response?.data || 'Failed to create invoice';
       setError(typeof msg === 'string' ? msg : 'Failed to create invoice');
@@ -209,7 +227,7 @@ export function SalesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {customers.map(c => (
-                    <SelectItem key={c.customerId} value={c.customerId.toString()}>
+                    <SelectItem key={c.customerId} value={c.customerId}>
                       {c.name} ({c.email})
                     </SelectItem>
                   ))}
@@ -348,6 +366,48 @@ export function SalesPage() {
                 </div>
               )}
 
+              {cart.length > 0 && (
+                <div className="space-y-2 pt-2 border-t">
+                  <div className="grid gap-1">
+                    <label className="text-xs font-medium">Payment</label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentStatus("Paid")}
+                        className={`flex-1 py-2 text-sm rounded-md border transition-colors ${
+                          paymentStatus === "Paid"
+                            ? "bg-green-50 border-green-500 text-green-700 font-medium"
+                            : "border-input hover:bg-accent"
+                        }`}
+                      >
+                        Paid
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentStatus("Pending")}
+                        className={`flex-1 py-2 text-sm rounded-md border transition-colors ${
+                          paymentStatus === "Pending"
+                            ? "bg-yellow-50 border-yellow-500 text-yellow-700 font-medium"
+                            : "border-input hover:bg-accent"
+                        }`}
+                      >
+                        Credit
+                      </button>
+                    </div>
+                  </div>
+                  {paymentStatus === "Pending" && (
+                    <div className="grid gap-1">
+                      <label className="text-xs font-medium">Due Date</label>
+                      <Input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {canSell && (
                 <Button
                   className="w-full"
@@ -366,7 +426,18 @@ export function SalesPage() {
       <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Invoice #{invoice?.invoiceId}</DialogTitle>
+            <DialogTitle className="flex items-center gap-3">
+            Invoice #{invoice?.invoiceId}
+            {invoice && (
+              <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                invoice.paymentStatus === "Paid"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-yellow-100 text-yellow-700"
+              }`}>
+                {invoice.paymentStatus}
+              </span>
+            )}
+          </DialogTitle>
           </DialogHeader>
           {invoice && (
             <div className="space-y-4">
