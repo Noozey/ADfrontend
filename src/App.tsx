@@ -4,6 +4,8 @@ import { LoginPage, RegisterPage } from "./pages/AuthPages";
 import { Dashboard } from "./pages/Dashboard";
 import { PartsPage } from "./pages/PartsPage";
 import { CustomersPage } from "./pages/CustomersPage";
+import { CustomerRegistrationPage } from "./pages/CustomerRegistrationPage";
+import { VendorsPage } from "./pages/VendorsPage";
 import { UsersPage } from "./pages/UsersPage";
 import { SalesPage } from "./pages/SalesPage";
 import { Layout } from "./components/Layout";
@@ -13,6 +15,8 @@ import CustomerReports from "./pages/CustomerReports";
 import InvoicesPage from "./pages/InvoicesPage";
 import ManageAppointments from "./pages/ManageAppointments";
 import { MyVehiclesPage } from "./pages/customer/MyVehiclesPage";
+import { BuyPartsPage } from "./pages/customer/BuyPartsPage";
+import { MyInvoicesPage } from "./pages/customer/MyInvoicesPage";
 import { BookAppointmentPage } from "./pages/customer/BookAppointmentPage";
 import { MyAppointmentsPage } from "./pages/customer/MyAppointmentsPage";
 import { RequestPartPage } from "./pages/customer/RequestPartPage";
@@ -77,6 +81,22 @@ export function App() {
             }
           />
           <Route
+            path="/buy-parts"
+            element={
+              <ProtectedRoute roles={["Customer"]}>
+                <BuyPartsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-invoices"
+            element={
+              <ProtectedRoute roles={["Customer"]}>
+                <MyInvoicesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/my-appointments"
             element={
               <ProtectedRoute roles={["Customer"]}>
@@ -121,6 +141,22 @@ export function App() {
             element={
               <ProtectedRoute roles={["Staff", "Admin"]}>
                 <CustomersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customers/register"
+            element={
+              <ProtectedRoute roles={["Staff", "Admin"]}>
+                <CustomerRegistrationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendors"
+            element={
+              <ProtectedRoute roles={["Admin"]}>
+                <VendorsPage />
               </ProtectedRoute>
             }
           />

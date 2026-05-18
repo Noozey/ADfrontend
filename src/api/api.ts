@@ -100,6 +100,7 @@ export const reportsApi = {
 
 export const partsApi = {
   getAll: () => api.get("/parts"),
+  getPublic: () => api.get("/parts/public"),
   getById: (id: number) => api.get(`/parts/${id}`),
   create: (data: any) => api.post("/parts", data),
   update: (id: number, data: any) => api.put(`/parts/${id}`, data),
@@ -116,9 +117,12 @@ export const usersApi = {
 
 export const customersApi = {
   getAll: () => api.get<CustomerDto[]>("/customers"),
-  getById: (id: number) => api.get<CustomerDto>(`/customers/${id}`),
-  getOverview: (id: number) => api.get(`/customers/${id}/overview`),
-  getHistory: (id: number) => api.get(`/customers/${id}/history`),
+  getById: (id: string | number) => api.get<CustomerDto>(`/customers/${id}`),
+  getOverview: (id: string | number) => api.get(`/customers/${id}/overview`),
+  getHistory: (id: string | number) => api.get(`/customers/${id}/history`),
+  getMyHistory: () => api.get("/customers/me/history"),
+  registerWithVehicle: (data: any) =>
+    api.post("/customers/register-with-vehicle", data),
   search: (term: string) =>
     api.get<CustomerDto[]>(`/customers/search?term=${encodeURIComponent(term)}`),
 };
@@ -157,6 +161,9 @@ export interface CustomerDto {
 
 export const saleInvoicesApi = {
   create: (data: any) => api.post("/saleinvoices", data),
+  createMine: (data: { paymentStatus?: string; dueDate?: string; items: { partId: number; quantity: number }[] }) =>
+    api.post<SaleInvoiceDto>("/saleinvoices/me", data),
+  getMine: () => api.get<SaleInvoiceDto[]>("/saleinvoices/me"),
   getAll: () => api.get<SaleInvoiceDto[]>("/saleinvoices"),
   getById: (id: number) => api.get<SaleInvoiceDto>(`/saleinvoices/${id}`),
   getByCustomer: (customerId: string) =>
@@ -251,10 +258,20 @@ export interface PartRequestDto {
 export const vehiclesApi = {
   create: (data: { vehicleNumber: string; make: string; model: string; mileage: number }) =>
     api.post<VehicleDto>("/vehicles", data),
-  getMine: () => api.get<VehicleDto[]>("/vehicles/mine"),
-  getByCustomer: (customerId: number) =>
+  getMine: () => api.get<VehicleDto[]>("/vehicles/me"),
+  getByCustomer: (customerId: string | number) =>
     api.get(`/vehicles/customer/${customerId}`),
-  delete: (id: number) => api.delete(`/vehicles/mine/${id}`),
+  createMine: (data: { vehicleNumber: string; make: string; model: string; mileage: number }) =>
+    api.post<VehicleDto>("/vehicles/me", data),
+  delete: (id: number) => api.delete(`/vehicles/${id}`),
+};
+
+export const vendorsApi = {
+  getAll: () => api.get("/vendors"),
+  getById: (id: number) => api.get(`/vendors/${id}`),
+  create: (data: any) => api.post("/vendors", data),
+  update: (id: number, data: any) => api.put(`/vendors/${id}`, data),
+  delete: (id: number) => api.delete(`/vendors/${id}`),
 };
 
 export const appointmentsApi = {

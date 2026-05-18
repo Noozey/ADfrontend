@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, CalendarPlus, Car, CheckCircle } from "lucide-react";
 export function BookAppointmentPage() {
   const [vehicles, setVehicles] = useState<VehicleDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +27,8 @@ export function BookAppointmentPage() {
   }, []);
 
   const bookAppointment = async () => {
+    setError("");
+    setSuccess("");
     if (!booking.vehicleId || !booking.appointmentDate) {
       setError("Select a vehicle and date");
       return;
@@ -35,8 +37,8 @@ export function BookAppointmentPage() {
       await appointmentsApi.book(booking);
       setBooking({ vehicleId: 0, appointmentDate: "", description: "" });
       setSuccess("Appointment booked");
-    } catch {
-      setError("Failed to book appointment");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to book appointment");
     }
   };
 
@@ -56,29 +58,77 @@ export function BookAppointmentPage() {
       )}
       {success && (
         <div className="flex items-center gap-2 p-3 rounded-md bg-green-50 text-green-700 text-sm">
-          <AlertCircle className="h-4 w-4" /> {success}
+          <CheckCircle className="h-4 w-4" /> {success}
         </div>
       )}
 
-      <Card>
-        <CardHeader><CardTitle>Book an Appointment</CardTitle></CardHeader>
-        <CardContent className="space-y-3 max-w-md">
-          <div className="grid gap-1">
-            <Label>Vehicle</Label>
-            <Select value={booking.vehicleId ? String(booking.vehicleId) : ""} onValueChange={(v) => setBooking({ ...booking, vehicleId: parseInt(v) })}>
-              <SelectTrigger><SelectValue placeholder="Select vehicle..." /></SelectTrigger>
-              <SelectContent>
-                {vehicles.map((v) => (
-                  <SelectItem key={v.vehicleId} value={String(v.vehicleId)}>{v.make} {v.model} ({v.vehicleNumber})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1"><Label>Date & Time</Label><Input type="datetime-local" value={booking.appointmentDate} onChange={(e) => setBooking({ ...booking, appointmentDate: e.target.value })} /></div>
-          <div className="grid gap-1"><Label>Description (optional)</Label><Input value={booking.description} onChange={(e) => setBooking({ ...booking, description: e.target.value })} placeholder="Oil change, brake service..." /></div>
-          <Button onClick={bookAppointment} className="w-full">Book Appointment</Button>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CalendarPlus className="h-5 w-5" />
+              Appointment Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <Label>Vehicle</Label>
+              <Select value={booking.vehicleId ? String(booking.vehicleId) : ""} onValueChange={(v) => setBooking({ ...booking, vehicleId: parseInt(v) })}>
+                <SelectTrigger>
+                  <SelectValue placeholder={vehicles.length ? "Select vehicle..." : "Add a vehicle first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {vehicles.map((v) => (
+                    <SelectItem key={v.vehicleId} value={String(v.vehicleId)}>
+                      {v.make} {v.model} ({v.vehicleNumber})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Date & Time</Label>
+              <Input type="datetime-local" value={booking.appointmentDate} onChange={(e) => setBooking({ ...booking, appointmentDate: e.target.value })} />
+            </div>
+            <div className="grid gap-2">
+              <Label>Description</Label>
+              <textarea
+                value={booking.description}
+                onChange={(e) => setBooking({ ...booking, description: e.target.value })}
+                placeholder="Oil change, brake service, inspection..."
+                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={bookAppointment} disabled={vehicles.length === 0}>
+                Book Appointment
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Car className="h-5 w-5" />
+              Vehicles
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {vehicles.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No vehicles registered yet.</p>
+            ) : (
+              vehicles.map(vehicle => (
+                <div key={vehicle.vehicleId} className="rounded-md border border-input p-3">
+                  <p className="font-medium">{vehicle.make} {vehicle.model}</p>
+                  <p className="text-sm text-muted-foreground">{vehicle.vehicleNumber}</p>
+                  <p className="text-xs text-muted-foreground">{vehicle.mileage.toLocaleString()} km</p>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

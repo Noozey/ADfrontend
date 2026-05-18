@@ -36,6 +36,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/buy-parts"}>
+                      <Link to="/buy-parts">Buy Parts</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/my-invoices"}>
+                      <Link to="/my-invoices">Invoices</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={location.pathname === "/book-appointment"}>
                       <Link to="/book-appointment">Book Appointment</Link>
                     </SidebarMenuButton>
@@ -70,7 +80,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuItem>
               )}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/"}>
+                <SidebarMenuButton asChild isActive={location.pathname === "/profile"}>
                   <Link to="/Profile">Profile</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -81,6 +91,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     isActive={location.pathname === "/parts"}
                   >
                     <Link to="/parts">Parts</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {(isStaff || isAdmin) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/customers/register"}
+                  >
+                    <Link to="/customers/register">Register Customer</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
@@ -121,6 +141,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     isActive={location.pathname === "/invoices"}
                   >
                     <Link to="/invoices">Invoices</Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/vendors"}
+                  >
+                    <Link to="/vendors">Vendors</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
