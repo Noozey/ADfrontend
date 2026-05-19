@@ -30,6 +30,7 @@ interface Part {
   stockQuantity: number;
   category?: string;
   partNumber?: string;
+  imageUrl?: string;
 }
 
 interface CartItem {
@@ -221,6 +222,7 @@ export function BuyPartsPage() {
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Part #</TableHead>
+                    <TableHead>Image</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead>Stock</TableHead>
                     <TableHead></TableHead>
@@ -235,6 +237,10 @@ export function BuyPartsPage() {
                       <TableCell>{part.category || "-"}</TableCell>
 
                       <TableCell>{part.partNumber || "-"}</TableCell>
+
+                      <TableCell>
+                        <img src={part.imageUrl} width={70} height={70} />
+                      </TableCell>
 
                       <TableCell className="text-right">
                         Rs.{part.price.toFixed(2)}

@@ -298,6 +298,15 @@ export const vehiclesApi = {
     mileage: number;
   }) => api.post<VehicleDto>("/vehicles/me", data),
   delete: (id: number) => api.delete(`/vehicles/${id}`),
+  update: (
+    id: number,
+    data: {
+      vehicleNumber: string;
+      make: string;
+      model: string;
+      mileage: number;
+    },
+  ) => api.put<VehicleDto>(`/vehicles/${id}`, data),
 };
 
 export const vendorsApi = {
@@ -338,8 +347,10 @@ export const partRequestsApi = {
     }),
   updateStatus: (id: number, status: string) =>
     api.put<PartRequestDto>(`/partrequests/${id}/status`, { status }),
-  approve: (id: number) => api.post<PartRequestDto>(`/partrequests/${id}/approve`),
-  reject: (id: number) => api.post<PartRequestDto>(`/partrequests/${id}/reject`),
+  approve: (id: number) =>
+    api.post<PartRequestDto>(`/partrequests/${id}/approve`),
+  reject: (id: number) =>
+    api.post<PartRequestDto>(`/partrequests/${id}/reject`),
 };
 
 export const profileApi = {
