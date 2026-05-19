@@ -1,18 +1,51 @@
 import { useState, useEffect } from "react";
-import { saleInvoicesApi, customersApi, SaleInvoiceDto, CustomerDto } from "@/api/api";
+import {
+  saleInvoicesApi,
+  customersApi,
+  SaleInvoiceDto,
+  CustomerDto,
+} from "@/api/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, FileText, Search, Eye, Mail, CheckCircle2 } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  FileText,
+  Search,
+  Eye,
+  Mail,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function InvoicesPage() {
   const { user } = useAuth();
-  const isStaffOrAdmin = user?.roles?.some((r) => r === "Staff" || r === "Admin");
+  const isStaffOrAdmin = user?.roles?.some(
+    (r) => r === "Staff" || r === "Admin",
+  );
 
   const [invoices, setInvoices] = useState<SaleInvoiceDto[]>([]);
   const [customers, setCustomers] = useState<CustomerDto[]>([]);
@@ -21,7 +54,9 @@ export default function InvoicesPage() {
   const [toDate, setToDate] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<SaleInvoiceDto | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<SaleInvoiceDto | null>(
+    null,
+  );
   const [showDetail, setShowDetail] = useState(false);
   const [sendingId, setSendingId] = useState<number | null>(null);
   const [emailSentId, setEmailSentId] = useState<number | null>(null);
@@ -61,7 +96,11 @@ export default function InvoicesPage() {
       setEmailSentId(id);
       setTimeout(() => setEmailSentId(null), 3000);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.response?.data?.title || "Failed to send email.");
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.title ||
+          "Failed to send email.",
+      );
     } finally {
       setSendingId(null);
     }
@@ -80,9 +119,12 @@ export default function InvoicesPage() {
   const filtered =
     selectedCustomerId || fromDate || toDate
       ? invoices.filter((inv) => {
-          if (selectedCustomerId && inv.customerId !== selectedCustomerId) return false;
-          if (fromDate && new Date(inv.saleDate) < new Date(fromDate)) return false;
-          if (toDate && new Date(inv.saleDate) > new Date(toDate + "T23:59:59")) return false;
+          if (selectedCustomerId && inv.customerId !== selectedCustomerId)
+            return false;
+          if (fromDate && new Date(inv.saleDate) < new Date(fromDate))
+            return false;
+          if (toDate && new Date(inv.saleDate) > new Date(toDate + "T23:59:59"))
+            return false;
           return true;
         })
       : invoices;
@@ -94,7 +136,9 @@ export default function InvoicesPage() {
       Overdue: "bg-red-100 text-red-700",
     };
     return (
-      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${map[status] || "bg-gray-100 text-gray-700"}`}>
+      <span
+        className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${map[status] || "bg-gray-100 text-gray-700"}`}
+      >
         {status}
       </span>
     );
@@ -103,8 +147,12 @@ export default function InvoicesPage() {
   if (!isStaffOrAdmin) {
     return (
       <div className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-destructive">Access Denied</h2>
-        <p className="text-muted-foreground">You do not have permission to view invoices.</p>
+        <h2 className="text-xl font-semibold text-destructive">
+          Access Denied
+        </h2>
+        <p className="text-muted-foreground">
+          You do not have permission to view invoices.
+        </p>
       </div>
     );
   }
@@ -113,7 +161,9 @@ export default function InvoicesPage() {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-        <p className="text-muted-foreground mt-1">View and search all sales invoices.</p>
+        <p className="text-muted-foreground mt-1">
+          View and search all sales invoices.
+        </p>
       </div>
 
       {error && (
@@ -133,7 +183,10 @@ export default function InvoicesPage() {
           <div className="flex flex-wrap items-end gap-3">
             <div className="grid gap-1">
               <label className="text-xs font-medium">Customer</label>
-              <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
+              <Select
+                value={selectedCustomerId}
+                onValueChange={setSelectedCustomerId}
+              >
                 <SelectTrigger className="w-56">
                   <SelectValue placeholder="All customers" />
                 </SelectTrigger>
@@ -149,13 +202,30 @@ export default function InvoicesPage() {
             </div>
             <div className="grid gap-1">
               <label className="text-xs font-medium">From</label>
-              <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-40" />
+              <Input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-40"
+              />
             </div>
             <div className="grid gap-1">
               <label className="text-xs font-medium">To</label>
-              <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-40" />
+              <Input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-40"
+              />
             </div>
-            <Button variant="outline" onClick={() => { setSelectedCustomerId(""); setFromDate(""); setToDate(""); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedCustomerId("");
+                setFromDate("");
+                setToDate("");
+              }}
+            >
               Clear
             </Button>
           </div>
@@ -189,14 +259,26 @@ export default function InvoicesPage() {
               <TableBody>
                 {filtered.map((inv) => (
                   <TableRow key={inv.invoiceId}>
-                    <TableCell className="font-medium">{inv.invoiceId}</TableCell>
+                    <TableCell className="font-medium">
+                      {inv.invoiceId}
+                    </TableCell>
                     <TableCell>{inv.customerName}</TableCell>
-                    <TableCell className="text-muted-foreground">{inv.staffName}</TableCell>
-                    <TableCell>{new Date(inv.saleDate).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right font-medium">Rs.{inv.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {inv.staffName}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(inv.saleDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      Rs.{inv.totalAmount.toFixed(2)}
+                    </TableCell>
                     <TableCell>{statusBadge(inv.paymentStatus)}</TableCell>
                     <TableCell className="text-right space-x-1">
-                      <Button size="sm" variant="ghost" onClick={() => viewInvoice(inv.invoiceId)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => viewInvoice(inv.invoiceId)}
+                      >
                         <Eye className="h-4 w-4 mr-1" /> View
                       </Button>
                       <Button
@@ -240,11 +322,15 @@ export default function InvoicesPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Date</p>
-                  <p className="font-medium">{new Date(selectedInvoice.saleDate).toLocaleString()}</p>
+                  <p className="font-medium">
+                    {new Date(selectedInvoice.saleDate).toLocaleString()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Due Date</p>
-                  <p className="font-medium">{new Date(selectedInvoice.dueDate).toLocaleDateString()}</p>
+                  <p className="font-medium">
+                    {new Date(selectedInvoice.dueDate).toLocaleDateString()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Payment Status</p>
@@ -265,9 +351,15 @@ export default function InvoicesPage() {
                   {selectedInvoice.items.map((item) => (
                     <TableRow key={item.itemId}>
                       <TableCell>{item.partName}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">Rs.{item.unitPriceAtSale.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">Rs.{item.lineTotal.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        {item.quantity}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        Rs.{item.unitPriceAtSale.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        Rs.{item.lineTotal.toFixed(2)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -292,7 +384,9 @@ export default function InvoicesPage() {
 
               <div className="flex justify-end pt-2">
                 <Button
-                  onClick={() => selectedInvoice && sendEmail(selectedInvoice.invoiceId)}
+                  onClick={() =>
+                    selectedInvoice && sendEmail(selectedInvoice.invoiceId)
+                  }
                   disabled={sendingId === selectedInvoice?.invoiceId}
                 >
                   {sendingId === selectedInvoice?.invoiceId ? (
@@ -300,7 +394,9 @@ export default function InvoicesPage() {
                   ) : (
                     <Mail className="h-4 w-4 mr-1" />
                   )}
-                  {sendingId === selectedInvoice?.invoiceId ? "Sending..." : "Email Invoice"}
+                  {sendingId === selectedInvoice?.invoiceId
+                    ? "Sending..."
+                    : "Email Invoice"}
                 </Button>
               </div>
             </div>
