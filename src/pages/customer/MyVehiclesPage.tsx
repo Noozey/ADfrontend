@@ -5,12 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, AlertCircle } from "lucide-react";
+
 export function MyVehiclesPage() {
   const [vehicles, setVehicles] = useState<VehicleDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [newVehicle, setNewVehicle] = useState({ vehicleNumber: "", make: "", model: "", mileage: 0 });
+  const [newVehicle, setNewVehicle] = useState({
+    vehicleNumber: "",
+    make: "",
+    model: "",
+    mileage: 0,
+  });
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editData, setEditData] = useState({
+    vehicleNumber: "",
+    make: "",
+    model: "",
+    mileage: 0,
+  });
 
   useEffect(() => {
     loadVehicles();
@@ -53,13 +66,47 @@ export function MyVehiclesPage() {
     }
   };
 
-  if (loading) return <div className="p-6"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+  const startEdit = (v: VehicleDto) => {
+    setEditingId(v.vehicleId);
+    setEditData({
+      vehicleNumber: v.vehicleNumber,
+      make: v.make,
+      model: v.model,
+      mileage: v.mileage,
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (id: number) => {
+    setError("");
+    setSuccess("");
+    try {
+      const res = await vehiclesApi.update(id, editData);
+      setVehicles(vehicles.map((v) => (v.vehicleId === id ? res.data : v)));
+      setEditingId(null);
+      setSuccess("Vehicle updated");
+    } catch {
+      setError("Failed to update vehicle");
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="p-6">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
 
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">My Vehicles</h1>
-        <p className="text-muted-foreground mt-1">Register and manage your vehicles.</p>
+        <p className="text-muted-foreground mt-1">
+          Register and manage your vehicles.
+        </p>
       </div>
 
       {error && (
@@ -75,29 +122,171 @@ export function MyVehiclesPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>Add Vehicle</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Add Vehicle</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid gap-1"><Label>Vehicle Number</Label><Input value={newVehicle.vehicleNumber} onChange={(e) => setNewVehicle({ ...newVehicle, vehicleNumber: e.target.value })} placeholder="ABC-1234" /></div>
-            <div className="grid gap-1"><Label>Make</Label><Input value={newVehicle.make} onChange={(e) => setNewVehicle({ ...newVehicle, make: e.target.value })} placeholder="Toyota" /></div>
-            <div className="grid gap-1"><Label>Model</Label><Input value={newVehicle.model} onChange={(e) => setNewVehicle({ ...newVehicle, model: e.target.value })} placeholder="Corolla" /></div>
-            <div className="grid gap-1"><Label>Mileage (km)</Label><Input type="number" value={newVehicle.mileage || ""} onChange={(e) => setNewVehicle({ ...newVehicle, mileage: parseInt(e.target.value) || 0 })} /></div>
-            <Button onClick={addVehicle} className="w-full">Add Vehicle</Button>
+            <div className="grid gap-1">
+              <Label>Vehicle Number</Label>
+              <Input
+                value={newVehicle.vehicleNumber}
+                onChange={(e) =>
+                  setNewVehicle({
+                    ...newVehicle,
+                    vehicleNumber: e.target.value,
+                  })
+                }
+                placeholder="ABC-1234"
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label>Make</Label>
+              <Input
+                value={newVehicle.make}
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, make: e.target.value })
+                }
+                placeholder="Toyota"
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label>Model</Label>
+              <Input
+                value={newVehicle.model}
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, model: e.target.value })
+                }
+                placeholder="Corolla"
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label>Mileage (km)</Label>
+              <Input
+                type="number"
+                value={newVehicle.mileage || ""}
+                onChange={(e) =>
+                  setNewVehicle({
+                    ...newVehicle,
+                    mileage: parseInt(e.target.value) || 0,
+                  })
+                }
+              />
+            </div>
+            <Button onClick={addVehicle} className="w-full">
+              Add Vehicle
+            </Button>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader><CardTitle>My Vehicles ({vehicles.length})</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>My Vehicles ({vehicles.length})</CardTitle>
+          </CardHeader>
           <CardContent>
             {vehicles.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No vehicles registered.</p>
+              <p className="text-sm text-muted-foreground">
+                No vehicles registered.
+              </p>
             ) : (
               <div className="space-y-3">
                 {vehicles.map((v) => (
-                  <div key={v.vehicleId} className="flex items-center justify-between p-3 border rounded-md">
-                    <div>
-                      <p className="font-medium">{v.make} {v.model}</p>
-                      <p className="text-sm text-muted-foreground">{v.vehicleNumber} &middot; {v.mileage.toLocaleString()} km</p>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => deleteVehicle(v.vehicleId)}>Delete</Button>
+                  <div
+                    key={v.vehicleId}
+                    className="p-3 border rounded-md space-y-2"
+                  >
+                    {editingId === v.vehicleId ? (
+                      <>
+                        <div className="grid gap-1">
+                          <Label>Vehicle Number</Label>
+                          <Input
+                            value={editData.vehicleNumber}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                vehicleNumber: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="grid gap-1">
+                          <Label>Make</Label>
+                          <Input
+                            value={editData.make}
+                            onChange={(e) =>
+                              setEditData({ ...editData, make: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div className="grid gap-1">
+                          <Label>Model</Label>
+                          <Input
+                            value={editData.model}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                model: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="grid gap-1">
+                          <Label>Mileage (km)</Label>
+                          <Input
+                            type="number"
+                            value={editData.mileage || ""}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                mileage: parseInt(e.target.value) || 0,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => saveEdit(v.vehicleId)}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={cancelEdit}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">
+                            {v.make} {v.model}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {v.vehicleNumber} &middot;{" "}
+                            {v.mileage.toLocaleString()} km
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEdit(v)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteVehicle(v.vehicleId)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
