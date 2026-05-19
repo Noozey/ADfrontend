@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { customersApi, vehiclesApi } from '@/api/api';
+import { customersApi, saleInvoicesApi, vehiclesApi, SaleInvoiceDto } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +45,7 @@ interface HistoryItem {
   totalAmount?: number;
   amount?: number;
   status?: string;
+  paymentStatus?: string;
 }
 
 interface CustomerOverview {
@@ -82,7 +83,41 @@ export function CustomersPage() {
 
   const formatMoney = (value?: number) => {
     if (typeof value !== 'number') return '-';
-    return `$${value.toFixed(2)}`;
+    return `Rs.${value.toFixed(2)}`;
+  };
+
+  const toArray = <T,>(value: unknown): T[] => {
+    if (Array.isArray(value)) return value as T[];
+    return [];
+  };
+
+  const invoiceToHistoryItem = (invoice: SaleInvoiceDto): HistoryItem => ({
+    invoiceId: invoice.invoiceId,
+    type: 'Purchase',
+    saleDate: invoice.saleDate,
+    description: invoice.items?.length
+      ? invoice.items.map(item => `${item.partName} x${item.quantity}`).join(', ')
+      : `Invoice #${invoice.invoiceId}`,
+    totalAmount: invoice.totalAmount,
+    status: invoice.paymentStatus,
+  });
+
+  const mergeHistoryWithInvoices = (historyItems: HistoryItem[], invoices: SaleInvoiceDto[]) => {
+    const existingInvoiceIds = new Set(
+      historyItems
+        .map(item => item.invoiceId)
+        .filter((invoiceId): invoiceId is number => typeof invoiceId === 'number'),
+    );
+
+    const invoiceHistory = invoices
+      .filter(invoice => !existingInvoiceIds.has(invoice.invoiceId))
+      .map(invoiceToHistoryItem);
+
+    return [...historyItems, ...invoiceHistory].sort((a, b) => {
+      const aDate = a.date || a.saleDate || a.serviceDate || a.purchaseDate || '';
+      const bDate = b.date || b.saleDate || b.serviceDate || b.purchaseDate || '';
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    });
   };
 
   const loadCustomers = async () => {
@@ -130,17 +165,35 @@ export function CustomersPage() {
     setError('');
     setDetailsLoading(true);
     try {
-      const [customerRes, overviewRes, historyRes, vehiclesRes] = await Promise.all([
+      const [customerRes, overviewRes, historyRes, vehiclesRes, invoicesRes] = await Promise.allSettled([
         customersApi.getById(customerId),
         customersApi.getOverview(customerId),
         customersApi.getHistory(customerId),
         vehiclesApi.getByCustomer(customerId),
+        saleInvoicesApi.getByCustomer(customerId),
       ]);
 
-      setSelectedCustomer(customerRes.data);
-      setOverview(overviewRes.data);
-      setHistory(Array.isArray(historyRes.data) ? historyRes.data : []);
-      setVehicles(Array.isArray(vehiclesRes.data) ? vehiclesRes.data : []);
+      const selected = customerRes.status === 'fulfilled' ? customerRes.value.data : customer;
+      const overviewData = overviewRes.status === 'fulfilled' ? overviewRes.value.data : null;
+      const historyData = historyRes.status === 'fulfilled' ? toArray<HistoryItem>(historyRes.value.data) : [];
+      const vehiclesData = vehiclesRes.status === 'fulfilled' ? toArray<Vehicle>(vehiclesRes.value.data) : [];
+      const invoicesData = invoicesRes.status === 'fulfilled' ? toArray<SaleInvoiceDto>(invoicesRes.value.data) : [];
+
+      setSelectedCustomer(selected);
+      setOverview({
+        ...overviewData,
+        totalPurchases: overviewData?.totalPurchases ?? invoicesData.length,
+        totalSpent:
+          overviewData?.totalSpent ??
+          invoicesData.reduce((sum, invoice) => sum + invoice.totalAmount, 0),
+        lastVisit:
+          overviewData?.lastVisit ??
+          invoicesData
+            .map(invoice => invoice.saleDate)
+            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0],
+      });
+      setHistory(mergeHistoryWithInvoices(historyData, invoicesData));
+      setVehicles(vehiclesData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load customer details');
     } finally {
