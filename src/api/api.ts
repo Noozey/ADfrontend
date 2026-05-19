@@ -161,6 +161,10 @@ export interface PagedSaleInvoiceResponse {
   totalPages: number;
 }
 
+export interface UpdateSaleInvoicePaymentStatusPayload {
+  paymentStatus: string;
+}
+
 export interface CustomerDto {
   customerId: string;
   name: string;
@@ -182,6 +186,10 @@ export const saleInvoicesApi = {
     api.get<PagedSaleInvoiceResponse>("/saleinvoices/paged", {
       params: { page, pageSize },
     }),
+  updatePaymentStatus: (id: number, paymentStatus: string) =>
+    api.put<SaleInvoiceDto>(`/saleinvoices/${id}/payment-status`, {
+      paymentStatus,
+    } satisfies UpdateSaleInvoicePaymentStatusPayload),
   getById: (id: number) => api.get<SaleInvoiceDto>(`/saleinvoices/${id}`),
   getByCustomer: (customerId: string) =>
     api.get<SaleInvoiceDto[]>(`/saleinvoices/customer/${customerId}`),

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, AlertCircle, FileText, Eye, Mail, CheckCircle2 } from "lucide-react";
 
 const PAGE_SIZE = 10;
@@ -21,6 +22,7 @@ export default function InvoicesPage() {
   const [showDetail, setShowDetail] = useState(false);
   const [sendingId, setSendingId] = useState<number | null>(null);
   const [emailSentId, setEmailSentId] = useState<number | null>(null);
+  const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -75,6 +77,22 @@ export default function InvoicesPage() {
       setShowDetail(true);
     } catch {
       setError("Failed to load invoice details.");
+    }
+  };
+
+  const updateStatus = async (id: number, paymentStatus: string) => {
+    setStatusUpdatingId(id);
+    setError(null);
+    try {
+      const res = await saleInvoicesApi.updatePaymentStatus(id, paymentStatus);
+      setInvoices((current) => current.map((invoice) => (invoice.invoiceId === id ? res.data : invoice)));
+      if (selectedInvoice?.invoiceId === id) {
+        setSelectedInvoice(res.data);
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to update payment status.");
+    } finally {
+      setStatusUpdatingId(null);
     }
   };
 
@@ -148,7 +166,25 @@ export default function InvoicesPage() {
                       <TableCell className="text-muted-foreground">{inv.staffName}</TableCell>
                       <TableCell>{new Date(inv.saleDate).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right font-medium">Rs.{inv.totalAmount.toFixed(2)}</TableCell>
-                      <TableCell>{statusBadge(inv.paymentStatus)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-2">
+                          {statusBadge(inv.paymentStatus)}
+                          <Select
+                            value={inv.paymentStatus}
+                            onValueChange={(value) => updateStatus(inv.invoiceId, value)}
+                            disabled={statusUpdatingId === inv.invoiceId}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="Change status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pending">Pending</SelectItem>
+                              <SelectItem value="Paid">Paid</SelectItem>
+                              <SelectItem value="Overdue">Overdue</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Button size="sm" variant="ghost" onClick={() => viewInvoice(inv.invoiceId)}>
                           <Eye className="h-4 w-4 mr-1" /> View
@@ -229,6 +265,22 @@ export default function InvoicesPage() {
                 <div>
                   <p className="text-muted-foreground">Payment Status</p>
                   <p>{statusBadge(selectedInvoice.paymentStatus)}</p>
+                  <Select
+                    value={selectedInvoice.paymentStatus}
+                    onValueChange={(value) =>
+                      updateStatus(selectedInvoice.invoiceId, value)
+                    }
+                    disabled={statusUpdatingId === selectedInvoice.invoiceId}
+                  >
+                    <SelectTrigger className="mt-2 w-40">
+                      <SelectValue placeholder="Change status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
