@@ -1,55 +1,56 @@
 import { useState, useEffect } from "react";
-import { saleInvoicesApi, customersApi, SaleInvoiceDto, CustomerDto } from "@/api/api";
+import { saleInvoicesApi, SaleInvoiceDto } from "@/api/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, FileText, Search, Eye, Mail, CheckCircle2 } from "lucide-react";
+import { Loader2, AlertCircle, FileText, Eye, Mail, CheckCircle2 } from "lucide-react";
+
+const PAGE_SIZE = 10;
 
 export default function InvoicesPage() {
   const { user } = useAuth();
   const isStaffOrAdmin = user?.roles?.some((r) => r === "Staff" || r === "Admin");
 
   const [invoices, setInvoices] = useState<SaleInvoiceDto[]>([]);
-  const [customers, setCustomers] = useState<CustomerDto[]>([]);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<SaleInvoiceDto | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [sendingId, setSendingId] = useState<number | null>(null);
   const [emailSentId, setEmailSentId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
-    loadInvoices();
-    loadCustomers();
-  }, []);
+    loadInvoices(currentPage);
+  }, [currentPage]);
 
-  const loadInvoices = async () => {
+  const loadInvoices = async (page: number) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await saleInvoicesApi.getAll();
-      setInvoices(res.data);
+      const res = await saleInvoicesApi.getPaged(page, PAGE_SIZE);
+      setInvoices(res.data.items);
+      setTotalPages(Math.max(1, res.data.totalPages));
+      setTotalCount(res.data.totalCount);
     } catch {
-      setError("Failed to load invoices.");
+      try {
+        const res = await saleInvoicesApi.getAll();
+        const allInvoices = res.data;
+        const start = (page - 1) * PAGE_SIZE;
+        const pagedInvoices = allInvoices.slice(start, start + PAGE_SIZE);
+        setInvoices(pagedInvoices);
+        setTotalCount(allInvoices.length);
+        setTotalPages(Math.max(1, Math.ceil(allInvoices.length / PAGE_SIZE)));
+      } catch {
+        setError("Failed to load invoices.");
+      }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadCustomers = async () => {
-    try {
-      const res = await customersApi.getAll();
-      setCustomers(res.data);
-    } catch {
-      // non-critical
     }
   };
 
@@ -77,15 +78,7 @@ export default function InvoicesPage() {
     }
   };
 
-  const filtered =
-    selectedCustomerId || fromDate || toDate
-      ? invoices.filter((inv) => {
-          if (selectedCustomerId && inv.customerId !== selectedCustomerId) return false;
-          if (fromDate && new Date(inv.saleDate) < new Date(fromDate)) return false;
-          if (toDate && new Date(inv.saleDate) > new Date(toDate + "T23:59:59")) return false;
-          return true;
-        })
-      : invoices;
+  const safePage = Math.min(currentPage, totalPages);
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -123,101 +116,88 @@ export default function InvoicesPage() {
       )}
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="grid gap-1">
-              <label className="text-xs font-medium">Customer</label>
-              <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-                <SelectTrigger className="w-56">
-                  <SelectValue placeholder="All customers" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value=" ">All customers</SelectItem>
-                  {customers.map((c) => (
-                    <SelectItem key={c.customerId} value={c.customerId}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1">
-              <label className="text-xs font-medium">From</label>
-              <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-40" />
-            </div>
-            <div className="grid gap-1">
-              <label className="text-xs font-medium">To</label>
-              <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-40" />
-            </div>
-            <Button variant="outline" onClick={() => { setSelectedCustomerId(""); setFromDate(""); setToDate(""); }}>
-              Clear
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : filtered.length === 0 ? (
+          ) : invoices.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No invoices found.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Staff</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((inv) => (
-                  <TableRow key={inv.invoiceId}>
-                    <TableCell className="font-medium">{inv.invoiceId}</TableCell>
-                    <TableCell>{inv.customerName}</TableCell>
-                    <TableCell className="text-muted-foreground">{inv.staffName}</TableCell>
-                    <TableCell>{new Date(inv.saleDate).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right font-medium">Rs.{inv.totalAmount.toFixed(2)}</TableCell>
-                    <TableCell>{statusBadge(inv.paymentStatus)}</TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button size="sm" variant="ghost" onClick={() => viewInvoice(inv.invoiceId)}>
-                        <Eye className="h-4 w-4 mr-1" /> View
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => sendEmail(inv.invoiceId)}
-                        disabled={sendingId === inv.invoiceId}
-                      >
-                        {sendingId === inv.invoiceId ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : emailSentId === inv.invoiceId ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <Mail className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Invoice #</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Staff</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {invoices.map((inv) => (
+                    <TableRow key={inv.invoiceId}>
+                      <TableCell className="font-medium">{inv.invoiceId}</TableCell>
+                      <TableCell>{inv.customerName}</TableCell>
+                      <TableCell className="text-muted-foreground">{inv.staffName}</TableCell>
+                      <TableCell>{new Date(inv.saleDate).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right font-medium">Rs.{inv.totalAmount.toFixed(2)}</TableCell>
+                      <TableCell>{statusBadge(inv.paymentStatus)}</TableCell>
+                      <TableCell className="text-right space-x-1">
+                        <Button size="sm" variant="ghost" onClick={() => viewInvoice(inv.invoiceId)}>
+                          <Eye className="h-4 w-4 mr-1" /> View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => sendEmail(inv.invoiceId)}
+                          disabled={sendingId === inv.invoiceId}
+                        >
+                          {sendingId === inv.invoiceId ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : emailSentId === inv.invoiceId ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Mail className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Showing {(safePage - 1) * PAGE_SIZE + 1}-{Math.min(safePage * PAGE_SIZE, totalCount)} of {totalCount} invoices
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    disabled={safePage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {safePage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                    disabled={safePage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

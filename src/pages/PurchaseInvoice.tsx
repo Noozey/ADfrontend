@@ -70,6 +70,7 @@ interface PurchaseResult {
 export function VendorPurchasePage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [parts, setParts] = useState<Part[]>([]);
+  const formatRs = (value: number) => `Rs. ${value.toFixed(2)}`;
   const [selectedVendorId, setSelectedVendorId] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [partSearch, setPartSearch] = useState("");
@@ -275,7 +276,7 @@ export function VendorPurchasePage() {
                           {part.name}
                         </TableCell>
                         <TableCell>{part.partNumber || "-"}</TableCell>
-                        <TableCell>${part.price.toFixed(2)}</TableCell>
+                        <TableCell>{formatRs(part.price)}</TableCell>
                         <TableCell>
                           <span
                             className={
@@ -336,7 +337,7 @@ export function VendorPurchasePage() {
                           {item.partName}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          ${item.unitPrice.toFixed(2)} each
+                          {formatRs(item.unitPrice)} each
                         </p>
                       </div>
                       <div className="w-20">
@@ -355,7 +356,7 @@ export function VendorPurchasePage() {
                       </div>
 
                       <p className="text-sm font-medium w-16 text-right">
-                        ${(item.unitPrice * item.quantity).toFixed(2)}
+                        {formatRs(item.unitPrice * item.quantity)}
                       </p>
                       <Button
                         variant="ghost"
@@ -373,7 +374,7 @@ export function VendorPurchasePage() {
               {cart.length > 0 && (
                 <div className="flex justify-between font-bold text-lg pt-2 border-t">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{formatRs(total)}</span>
                 </div>
               )}
 
@@ -428,10 +429,10 @@ export function VendorPurchasePage() {
                         {item.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        ${item.unitPrice.toFixed(2)}
+                        {formatRs(item.unitPrice)}
                       </TableCell>
                       <TableCell className="text-right">
-                        ${item.lineTotal.toFixed(2)}
+                        {formatRs(item.lineTotal)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -439,7 +440,7 @@ export function VendorPurchasePage() {
               </Table>
               <div className="flex justify-end font-bold text-lg border-t pt-2">
                 <span className="mr-8">Total:</span>
-                <span>${purchaseResult.totalAmount.toFixed(2)}</span>
+                <span>{formatRs(purchaseResult.totalAmount)}</span>
               </div>
             </div>
           )}

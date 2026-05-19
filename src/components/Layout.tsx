@@ -86,6 +86,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   const adminItems: NavItem[] = [
+    { to: "/part-requests", label: "Part Requests", icon: <ClipboardList className="h-4 w-4" /> },
     { to: "/vendors", label: "Vendors", icon: <Truck className="h-4 w-4" /> },
     { to: "/users", label: "Users", icon: <Users className="h-4 w-4" /> },
     { to: "/purchase", label: "Purchase", icon: <ShoppingBag className="h-4 w-4" /> },

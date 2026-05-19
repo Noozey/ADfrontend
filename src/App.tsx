@@ -12,6 +12,7 @@ import { Layout } from "./components/Layout";
 import "./style.css";
 import FinancialReport from "./pages/Financial";
 import CustomerReports from "./pages/CustomerReports";
+import PartRequestsPage from "./pages/PartRequestsPage";
 import InvoicesPage from "./pages/InvoicesPage";
 import ManageAppointments from "./pages/ManageAppointments";
 import { MyVehiclesPage } from "./pages/customer/MyVehiclesPage";
@@ -182,6 +183,14 @@ export function App() {
             element={
               <ProtectedRoute roles={["Staff", "Admin"]}>
                 <CustomerReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/part-requests"
+            element={
+              <ProtectedRoute roles={["Staff", "Admin"]}>
+                <PartRequestsPage />
               </ProtectedRoute>
             }
           />

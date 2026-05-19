@@ -78,6 +78,7 @@ interface InvoiceDetail {
 export function SalesPage() {
   const { isStaff, isAdmin } = useAuth();
   const canSell = isStaff || isAdmin;
+  const formatRs = (value: number) => `Rs. ${value.toFixed(2)}`;
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [parts, setParts] = useState<Part[]>([]);
@@ -318,7 +319,7 @@ export function SalesPage() {
                           {part.name}
                         </TableCell>
                         <TableCell>{part.partNumber || "-"}</TableCell>
-                        <TableCell>${part.price.toFixed(2)}</TableCell>
+                        <TableCell>{formatRs(part.price)}</TableCell>
                         <TableCell>
                           <span
                             className={
@@ -384,7 +385,7 @@ export function SalesPage() {
                           {item.partName}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          ${item.unitPrice.toFixed(2)} each
+                          {formatRs(item.unitPrice)} each
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
@@ -403,7 +404,7 @@ export function SalesPage() {
                         />
                       </div>
                       <p className="text-sm font-medium w-16 text-right">
-                        ${(item.unitPrice * item.quantity).toFixed(2)}
+                        {formatRs(item.unitPrice * item.quantity)}
                       </p>
                       <Button
                         variant="ghost"
@@ -423,14 +424,14 @@ export function SalesPage() {
                 <div className="space-y-2 pt-2 border-t">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>{formatRs(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>
                       Discount {subtotal > 5000 ? "(10% loyalty)" : ""}
                     </span>
                     <span className="text-green-600">
-                      -${discount.toFixed(2)}
+                      -{formatRs(discount)}
                     </span>
                   </div>
                   {subtotal > 5000 && (
@@ -440,7 +441,7 @@ export function SalesPage() {
                   )}
                   <div className="flex justify-between font-bold text-lg pt-2 border-t">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{formatRs(total)}</span>
                   </div>
                 </div>
               )}
@@ -554,10 +555,10 @@ export function SalesPage() {
                         {item.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        ${item.unitPriceAtSale.toFixed(2)}
+                        {formatRs(item.unitPriceAtSale)}
                       </TableCell>
                       <TableCell className="text-right">
-                        ${item.lineTotal.toFixed(2)}
+                        {formatRs(item.lineTotal)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -567,17 +568,17 @@ export function SalesPage() {
               <div className="flex flex-col items-end space-y-1 text-sm">
                 <div className="flex justify-between w-48">
                   <span>Subtotal:</span>
-                  <span>${invoice.subtotal.toFixed(2)}</span>
+                  <span>{formatRs(invoice.subtotal)}</span>
                 </div>
                 {invoice.discountAmount > 0 && (
                   <div className="flex justify-between w-48 text-green-600">
                     <span>Discount:</span>
-                    <span>-${invoice.discountAmount.toFixed(2)}</span>
+                    <span>-{formatRs(invoice.discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between w-48 font-bold text-lg border-t pt-1">
                   <span>Total:</span>
-                  <span>${invoice.totalAmount.toFixed(2)}</span>
+                  <span>{formatRs(invoice.totalAmount)}</span>
                 </div>
               </div>
             </div>

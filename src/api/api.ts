@@ -153,6 +153,14 @@ export interface SaleInvoiceDto {
   items: SaleInvoiceItemDto[];
 }
 
+export interface PagedSaleInvoiceResponse {
+  items: SaleInvoiceDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
 export interface CustomerDto {
   customerId: string;
   name: string;
@@ -170,6 +178,10 @@ export const saleInvoicesApi = {
   }) => api.post<SaleInvoiceDto>("/saleinvoices/me", data),
   getMine: () => api.get<SaleInvoiceDto[]>("/saleinvoices/me"),
   getAll: () => api.get<SaleInvoiceDto[]>("/saleinvoices"),
+  getPaged: (page = 1, pageSize = 10) =>
+    api.get<PagedSaleInvoiceResponse>("/saleinvoices/paged", {
+      params: { page, pageSize },
+    }),
   getById: (id: number) => api.get<SaleInvoiceDto>(`/saleinvoices/${id}`),
   getByCustomer: (customerId: string) =>
     api.get<SaleInvoiceDto[]>(`/saleinvoices/customer/${customerId}`),
@@ -312,9 +324,14 @@ export const partRequestsApi = {
   submit: (data: { partName: string; description?: string }) =>
     api.post<PartRequestDto>("/partrequests", data),
   getMine: () => api.get<PartRequestDto[]>("/partrequests/mine"),
-  getAll: () => api.get<PartRequestDto[]>("/partrequests"),
+  getAll: (status?: string) =>
+    api.get<PartRequestDto[]>("/partrequests", {
+      params: status ? { status } : undefined,
+    }),
   updateStatus: (id: number, status: string) =>
     api.put<PartRequestDto>(`/partrequests/${id}/status`, { status }),
+  approve: (id: number) => api.post<PartRequestDto>(`/partrequests/${id}/approve`),
+  reject: (id: number) => api.post<PartRequestDto>(`/partrequests/${id}/reject`),
 };
 
 export const profileApi = {
