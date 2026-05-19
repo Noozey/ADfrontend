@@ -304,21 +304,13 @@ export function CustomersPage() {
           </Card>
 
           {selectedCustomer && (
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm font-medium text-muted-foreground">Purchases</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold">{overview?.totalPurchases ?? '-'}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Services</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{overview?.totalServices ?? '-'}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -382,7 +374,7 @@ export function CustomersPage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <History className="h-5 w-5" />
-                Purchase & Service History
+                Purchase History
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">

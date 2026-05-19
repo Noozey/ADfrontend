@@ -43,7 +43,7 @@ type NavItem = {
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout, isAdmin, isStaff, isCustomer } = useAuth();
   const location = useLocation();
-  const lowStockCount = useLowStockCount();
+  const lowStockCount = useLowStockCount(isAdmin);
 
   const isActive = (to: string, activePaths: string[] = [], exact = false) =>
     exact
