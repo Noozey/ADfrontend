@@ -1,24 +1,51 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { saleInvoicesApi, SaleInvoiceDto } from "@/api/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, AlertCircle, FileText, Eye, Mail, CheckCircle2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Loader2,
+  AlertCircle,
+  FileText,
+  Eye,
+  Mail,
+  CheckCircle2,
+} from "lucide-react";
 
 const PAGE_SIZE = 10;
 
 export default function InvoicesPage() {
   const { user } = useAuth();
-  const isStaffOrAdmin = user?.roles?.some((r) => r === "Staff" || r === "Admin");
+  const isStaffOrAdmin = user?.roles?.some(
+    (r) => r === "Staff" || r === "Admin",
+  );
 
   const [invoices, setInvoices] = useState<SaleInvoiceDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<SaleInvoiceDto | null>(null);
+  const [selectedInvoice, setSelectedInvoice] =
+    useState<SaleInvoiceDto | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [sendingId, setSendingId] = useState<number | null>(null);
   const [emailSentId, setEmailSentId] = useState<number | null>(null);
@@ -64,7 +91,11 @@ export default function InvoicesPage() {
       setEmailSentId(id);
       setTimeout(() => setEmailSentId(null), 3000);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.response?.data?.title || "Failed to send email.");
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.title ||
+          "Failed to send email.",
+      );
     } finally {
       setSendingId(null);
     }
@@ -85,12 +116,16 @@ export default function InvoicesPage() {
     setError(null);
     try {
       const res = await saleInvoicesApi.updatePaymentStatus(id, paymentStatus);
-      setInvoices((current) => current.map((invoice) => (invoice.invoiceId === id ? res.data : invoice)));
+      setInvoices((current) =>
+        current.map((invoice) => (invoice.invoiceId === id ? res.data : invoice)),
+      );
       if (selectedInvoice?.invoiceId === id) {
         setSelectedInvoice(res.data);
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to update payment status.");
+      setError(
+        err?.response?.data?.message || "Failed to update payment status.",
+      );
     } finally {
       setStatusUpdatingId(null);
     }
@@ -105,7 +140,9 @@ export default function InvoicesPage() {
       Overdue: "bg-red-100 text-red-700",
     };
     return (
-      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${map[status] || "bg-gray-100 text-gray-700"}`}>
+      <span
+        className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${map[status] || "bg-gray-100 text-gray-700"}`}
+      >
         {status}
       </span>
     );
@@ -114,8 +151,12 @@ export default function InvoicesPage() {
   if (!isStaffOrAdmin) {
     return (
       <div className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-destructive">Access Denied</h2>
-        <p className="text-muted-foreground">You do not have permission to view invoices.</p>
+        <h2 className="text-xl font-semibold text-destructive">
+          Access Denied
+        </h2>
+        <p className="text-muted-foreground">
+          You do not have permission to view invoices.
+        </p>
       </div>
     );
   }
@@ -124,11 +165,13 @@ export default function InvoicesPage() {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-        <p className="text-muted-foreground mt-1">View and search all sales invoices.</p>
+        <p className="text-muted-foreground mt-1">
+          View and search all sales invoices.
+        </p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+        <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
           <AlertCircle className="h-4 w-4" /> {error}
         </div>
       )}
@@ -140,8 +183,8 @@ export default function InvoicesPage() {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : invoices.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <div className="py-12 text-center text-muted-foreground">
+              <FileText className="mx-auto mb-2 h-8 w-8 opacity-50" />
               <p>No invoices found.</p>
             </div>
           ) : (
@@ -161,17 +204,27 @@ export default function InvoicesPage() {
                 <TableBody>
                   {invoices.map((inv) => (
                     <TableRow key={inv.invoiceId}>
-                      <TableCell className="font-medium">{inv.invoiceId}</TableCell>
+                      <TableCell className="font-medium">
+                        {inv.invoiceId}
+                      </TableCell>
                       <TableCell>{inv.customerName}</TableCell>
-                      <TableCell className="text-muted-foreground">{inv.staffName}</TableCell>
-                      <TableCell>{new Date(inv.saleDate).toLocaleDateString()}</TableCell>
-                      <TableCell className="text-right font-medium">Rs.{inv.totalAmount.toFixed(2)}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {inv.staffName}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(inv.saleDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        Rs.{inv.totalAmount.toFixed(2)}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-2">
                           {statusBadge(inv.paymentStatus)}
                           <Select
                             value={inv.paymentStatus}
-                            onValueChange={(value) => updateStatus(inv.invoiceId, value)}
+                            onValueChange={(value) =>
+                              updateStatus(inv.invoiceId, value)
+                            }
                             disabled={statusUpdatingId === inv.invoiceId}
                           >
                             <SelectTrigger className="w-40">
@@ -185,9 +238,13 @@ export default function InvoicesPage() {
                           </Select>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button size="sm" variant="ghost" onClick={() => viewInvoice(inv.invoiceId)}>
-                          <Eye className="h-4 w-4 mr-1" /> View
+                      <TableCell className="space-x-1 text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => viewInvoice(inv.invoiceId)}
+                        >
+                          <Eye className="mr-1 h-4 w-4" /> View
                         </Button>
                         <Button
                           size="sm"
@@ -211,7 +268,9 @@ export default function InvoicesPage() {
 
               <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Showing {(safePage - 1) * PAGE_SIZE + 1}-{Math.min(safePage * PAGE_SIZE, totalCount)} of {totalCount} invoices
+                  Showing {(safePage - 1) * PAGE_SIZE + 1}-
+                  {Math.min(safePage * PAGE_SIZE, totalCount)} of {totalCount}{" "}
+                  invoices
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -226,7 +285,9 @@ export default function InvoicesPage() {
                   </span>
                   <Button
                     variant="outline"
-                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                    onClick={() =>
+                      setCurrentPage((page) => Math.min(totalPages, page + 1))
+                    }
                     disabled={safePage === totalPages}
                   >
                     Next
@@ -256,11 +317,15 @@ export default function InvoicesPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Date</p>
-                  <p className="font-medium">{new Date(selectedInvoice.saleDate).toLocaleString()}</p>
+                  <p className="font-medium">
+                    {new Date(selectedInvoice.saleDate).toLocaleString()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Due Date</p>
-                  <p className="font-medium">{new Date(selectedInvoice.dueDate).toLocaleDateString()}</p>
+                  <p className="font-medium">
+                    {new Date(selectedInvoice.dueDate).toLocaleDateString()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Payment Status</p>
@@ -297,26 +362,32 @@ export default function InvoicesPage() {
                   {selectedInvoice.items.map((item) => (
                     <TableRow key={item.itemId}>
                       <TableCell>{item.partName}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">Rs.{item.unitPriceAtSale.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">Rs.{item.lineTotal.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        {item.quantity}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        Rs.{item.unitPriceAtSale.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        Rs.{item.lineTotal.toFixed(2)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
 
               <div className="flex flex-col items-end space-y-1 text-sm">
-                <div className="flex justify-between w-48">
+                <div className="flex w-48 justify-between">
                   <span>Subtotal:</span>
                   <span>Rs.{selectedInvoice.subtotal.toFixed(2)}</span>
                 </div>
                 {selectedInvoice.discountAmount > 0 && (
-                  <div className="flex justify-between w-48 text-green-600">
+                  <div className="flex w-48 justify-between text-green-600">
                     <span>Discount:</span>
                     <span>-Rs.{selectedInvoice.discountAmount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between w-48 font-bold text-lg border-t pt-1">
+                <div className="flex w-48 justify-between border-t pt-1 text-lg font-bold">
                   <span>Total:</span>
                   <span>Rs.{selectedInvoice.totalAmount.toFixed(2)}</span>
                 </div>
@@ -324,15 +395,19 @@ export default function InvoicesPage() {
 
               <div className="flex justify-end pt-2">
                 <Button
-                  onClick={() => selectedInvoice && sendEmail(selectedInvoice.invoiceId)}
+                  onClick={() =>
+                    selectedInvoice && sendEmail(selectedInvoice.invoiceId)
+                  }
                   disabled={sendingId === selectedInvoice?.invoiceId}
                 >
                   {sendingId === selectedInvoice?.invoiceId ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                   ) : (
-                    <Mail className="h-4 w-4 mr-1" />
+                    <Mail className="mr-1 h-4 w-4" />
                   )}
-                  {sendingId === selectedInvoice?.invoiceId ? "Sending..." : "Email Invoice"}
+                  {sendingId === selectedInvoice?.invoiceId
+                    ? "Sending..."
+                    : "Email Invoice"}
                 </Button>
               </div>
             </div>

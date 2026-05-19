@@ -1,11 +1,26 @@
 import { useEffect, useState } from "react";
 import { partsApi, saleInvoicesApi } from "@/api/api";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Search, ShoppingCart, Trash2, XCircle } from "lucide-react";
+
+import {
+  CheckCircle,
+  Search,
+  ShoppingCart,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 
 interface Part {
   partId: number;
@@ -44,7 +59,9 @@ export function BuyPartsPage() {
       setParts(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
       if (err.response?.status === 403) {
-        setError("You do not have permission to browse the customer parts catalog.");
+        setError(
+          "You do not have permission to browse the customer parts catalog.",
+        );
       } else {
         setError(err.response?.data?.message || "Failed to load parts");
       }
@@ -54,59 +71,74 @@ export function BuyPartsPage() {
   };
 
   const addToCart = (part: Part) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.partId === part.partId);
+    setCart((prev) => {
+      const existing = prev.find((item) => item.partId === part.partId);
+
       if (existing) {
-        return prev.map(item =>
+        return prev.map((item) =>
           item.partId === part.partId
-            ? { ...item, quantity: Math.min(item.quantity + 1, item.stockAvailable) }
-            : item
+            ? {
+                ...item,
+                quantity: Math.min(item.quantity + 1, item.stockAvailable),
+              }
+            : item,
         );
       }
-      return [...prev, {
-        partId: part.partId,
-        partName: part.name,
-        unitPrice: part.price,
-        quantity: 1,
-        stockAvailable: part.stockQuantity,
-      }];
+
+      return [
+        ...prev,
+        {
+          partId: part.partId,
+          partName: part.name,
+          unitPrice: part.price,
+          quantity: 1,
+          stockAvailable: part.stockQuantity,
+        },
+      ];
     });
   };
 
   const updateQuantity = (partId: number, quantity: number) => {
-    setCart(prev =>
-      prev.map(item =>
+    setCart((prev) =>
+      prev.map((item) =>
         item.partId === partId
-          ? { ...item, quantity: Math.max(1, Math.min(quantity, item.stockAvailable)) }
-          : item
-      )
+          ? {
+              ...item,
+              quantity: Math.max(1, Math.min(quantity, item.stockAvailable)),
+            }
+          : item,
+      ),
     );
   };
 
   const removeFromCart = (partId: number) => {
-    setCart(prev => prev.filter(item => item.partId !== partId));
+    setCart((prev) => prev.filter((item) => item.partId !== partId));
   };
 
   const createOrder = async () => {
     setError("");
     setSuccess("");
+
     if (cart.length === 0) {
       setError("Add at least one part to cart");
       return;
     }
 
     setSubmitting(true);
+
     try {
       await saleInvoicesApi.createMine({
         paymentStatus: "Paid",
-        items: cart.map(item => ({
+        items: cart.map((item) => ({
           partId: item.partId,
           quantity: item.quantity,
         })),
       });
+
       setCart([]);
       setSuccess("Purchase created successfully.");
-      loadParts();
+
+      await loadParts();
     } catch (err: any) {
       if (err.response?.status === 403) {
         setError("You do not have permission to create this purchase.");
@@ -118,30 +150,49 @@ export function BuyPartsPage() {
     }
   };
 
-  const filteredParts = parts.filter(part =>
-    part.name.toLowerCase().includes(search.toLowerCase()) ||
-    (part.partNumber && part.partNumber.toLowerCase().includes(search.toLowerCase())) ||
-    (part.category && part.category.toLowerCase().includes(search.toLowerCase()))
+  const filteredParts = parts.filter(
+    (part) =>
+      part.name.toLowerCase().includes(search.toLowerCase()) ||
+      (part.partNumber &&
+        part.partNumber.toLowerCase().includes(search.toLowerCase())) ||
+      (part.category &&
+        part.category.toLowerCase().includes(search.toLowerCase())),
   );
-  const total = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.unitPrice * item.quantity,
+    0,
+  );
+
+  const discount = subtotal > 5000 ? subtotal * 0.1 : 0;
+
+  const total = subtotal - discount;
+
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
 
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Buy Parts</h1>
-        <p className="text-muted-foreground mt-1">Browse available parts and create a purchase.</p>
+
+        <p className="text-muted-foreground mt-1">
+          Browse available parts and create a purchase.
+        </p>
       </div>
 
       {error && (
         <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-          <XCircle className="h-4 w-4" /> {error}
+          <XCircle className="h-4 w-4" />
+          {error}
         </div>
       )}
+
       {success && (
         <div className="flex items-center gap-2 p-3 rounded-md bg-green-50 text-green-700 text-sm">
-          <CheckCircle className="h-4 w-4" /> {success}
+          <CheckCircle className="h-4 w-4" />
+          {success}
         </div>
       )}
 
@@ -150,11 +201,19 @@ export function BuyPartsPage() {
           <CardHeader>
             <CardTitle className="text-lg">Available Parts</CardTitle>
           </CardHeader>
+
           <CardContent className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search parts..." className="pl-10" />
+
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search parts..."
+                className="pl-10"
+              />
             </div>
+
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -167,20 +226,36 @@ export function BuyPartsPage() {
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
-                  {filteredParts.map(part => (
+                  {filteredParts.map((part) => (
                     <TableRow key={part.partId}>
                       <TableCell className="font-medium">{part.name}</TableCell>
+
                       <TableCell>{part.category || "-"}</TableCell>
+
                       <TableCell>{part.partNumber || "-"}</TableCell>
-                      <TableCell className="text-right">Rs.{part.price.toFixed(2)}</TableCell>
+
+                      <TableCell className="text-right">
+                        Rs.{part.price.toFixed(2)}
+                      </TableCell>
+
                       <TableCell>
-                        <Badge variant={part.stockQuantity > 0 ? "secondary" : "destructive"}>
+                        <Badge
+                          variant={
+                            part.stockQuantity > 0 ? "secondary" : "destructive"
+                          }
+                        >
                           {part.stockQuantity}
                         </Badge>
                       </TableCell>
+
                       <TableCell className="text-right">
-                        <Button size="sm" onClick={() => addToCart(part)} disabled={part.stockQuantity < 1}>
+                        <Button
+                          size="sm"
+                          onClick={() => addToCart(part)}
+                          disabled={part.stockQuantity < 1}
+                        >
                           Add
                         </Button>
                       </TableCell>
@@ -188,7 +263,12 @@ export function BuyPartsPage() {
                   ))}
                 </TableBody>
               </Table>
-              {filteredParts.length === 0 && <p className="p-6 text-center text-muted-foreground">No parts found.</p>}
+
+              {filteredParts.length === 0 && (
+                <p className="p-6 text-center text-muted-foreground">
+                  No parts found.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -200,35 +280,84 @@ export function BuyPartsPage() {
               Cart ({cart.length})
             </CardTitle>
           </CardHeader>
+
           <CardContent className="space-y-4">
             {cart.length === 0 ? (
               <p className="text-sm text-muted-foreground">Cart is empty.</p>
             ) : (
-              cart.map(item => (
-                <div key={item.partId} className="grid grid-cols-[1fr_72px_32px] items-center gap-2 border-b pb-3 last:border-0">
+              cart.map((item) => (
+                <div
+                  key={item.partId}
+                  className="grid grid-cols-[1fr_72px_32px] items-center gap-2 border-b pb-3 last:border-0"
+                >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{item.partName}</p>
-                    <p className="text-xs text-muted-foreground">Rs.{item.unitPrice.toFixed(2)} each</p>
+                    <p className="text-sm font-medium truncate">
+                      {item.partName}
+                    </p>
+
+                    <p className="text-xs text-muted-foreground">
+                      Rs.{item.unitPrice.toFixed(2)} each
+                    </p>
                   </div>
+
                   <Input
                     type="number"
                     min={1}
                     max={item.stockAvailable}
                     value={item.quantity}
-                    onChange={e => updateQuantity(item.partId, parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      updateQuantity(item.partId, parseInt(e.target.value) || 1)
+                    }
                     className="h-9 text-center"
                   />
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.partId)}>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => removeFromCart(item.partId)}
+                  >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
               ))
             )}
-            <div className="flex justify-between font-semibold border-t pt-3">
-              <span>Total</span>
-              <span>Rs.{total.toFixed(2)}</span>
-            </div>
-            <Button className="w-full" onClick={createOrder} disabled={submitting || cart.length === 0}>
+
+            {cart.length > 0 && (
+              <div className="space-y-2 border-t pt-3">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal</span>
+
+                  <span>Rs.{subtotal.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <span>Discount {subtotal > 5000 ? "(10% loyalty)" : ""}</span>
+
+                  <span className="text-green-600">
+                    -Rs.{discount.toFixed(2)}
+                  </span>
+                </div>
+
+                {subtotal > 5000 && (
+                  <Badge variant="secondary" className="text-xs">
+                    10% loyalty discount applied
+                  </Badge>
+                )}
+
+                <div className="flex justify-between font-semibold border-t pt-3">
+                  <span>Total</span>
+
+                  <span>Rs.{total.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
+
+            <Button
+              className="w-full"
+              onClick={createOrder}
+              disabled={submitting || cart.length === 0}
+            >
               {submitting ? "Buying..." : "Buy Parts"}
             </Button>
           </CardContent>
