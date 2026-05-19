@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { vendorsApi } from "@/api/api";
+import { vendorsApi, purchaseInvoicesApi } from "@/api/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,12 +29,27 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, History } from "lucide-react";
 
 interface Vendor {
   vendorId: number;
   name: string;
   contactEmail?: string | null;
+}
+
+interface PurchaseItem {
+  partName: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+interface PurchaseInvoice {
+  purchaseInvoiceId: number;
+  vendorName: string;
+  purchaseDate: string;
+  totalAmount: number;
+  items: PurchaseItem[];
 }
 
 const emptyForm = { name: "", contactEmail: "" };
@@ -46,6 +61,13 @@ export function VendorsPage() {
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
+
+  // Purchase history
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyVendor, setHistoryVendor] = useState<Vendor | null>(null);
+  const [purchases, setPurchases] = useState<PurchaseInvoice[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   useEffect(() => {
     loadVendors();
@@ -107,6 +129,22 @@ export function VendorsPage() {
     }
   };
 
+  const openHistory = async (vendor: Vendor) => {
+    setHistoryVendor(vendor);
+    setShowHistory(true);
+    setHistoryLoading(true);
+    setExpandedId(null);
+    try {
+      const res = await purchaseInvoicesApi.getByVendor(vendor.vendorId);
+      setPurchases(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Failed to load purchase history", err);
+      setPurchases([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   if (loading) return <div className="p-6">Loading...</div>;
 
   return (
@@ -140,6 +178,14 @@ export function VendorsPage() {
                   <TableCell>{vendor.contactEmail || "-"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openHistory(vendor)}
+                        title="Purchase History"
+                      >
+                        <History className="h-4 w-4 text-muted-foreground" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -185,6 +231,7 @@ export function VendorsPage() {
         </CardContent>
       </Card>
 
+      {/* Add/Edit Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent>
           <DialogHeader>
@@ -229,6 +276,90 @@ export function VendorsPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Purchase History Modal */}
+      <Dialog open={showHistory} onOpenChange={setShowHistory}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Purchase History — {historyVendor?.name}</DialogTitle>
+          </DialogHeader>
+          {historyLoading ? (
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          ) : purchases.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No purchases found for this vendor.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {purchases.map((p) => (
+                <Card key={p.purchaseInvoiceId}>
+                  <CardContent className="p-4">
+                    <div
+                      className="flex items-center justify-between cursor-pointer"
+                      onClick={() =>
+                        setExpandedId(
+                          expandedId === p.purchaseInvoiceId
+                            ? null
+                            : p.purchaseInvoiceId,
+                        )
+                      }
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium text-sm">
+                          Invoice #{p.purchaseInvoiceId}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(p.purchaseDate).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold">${p.totalAmount.toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.items.length} item(s)
+                        </p>
+                      </div>
+                    </div>
+                    {expandedId === p.purchaseInvoiceId && (
+                      <div className="mt-3 border-t pt-3">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Part</TableHead>
+                              <TableHead className="text-right">Qty</TableHead>
+                              <TableHead className="text-right">
+                                Unit Price
+                              </TableHead>
+                              <TableHead className="text-right">
+                                Total
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {p.items.map((item, i) => (
+                              <TableRow key={i}>
+                                <TableCell>{item.partName}</TableCell>
+                                <TableCell className="text-right">
+                                  {item.quantity}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  ${item.unitPrice.toFixed(2)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  ${item.lineTotal.toFixed(2)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
