@@ -355,6 +355,8 @@ export const profileApi = {
 };
 
 export const purchaseInvoicesApi = {
+  getByVendor: (vendorId: number) =>
+    api.get(`/purchaseinvoices/vendor/${vendorId}`),
   create: (data: any) => api.post("/purchaseinvoices", data),
   getAll: () => api.get("/purchaseinvoices"),
   getById: (id: number) => api.get(`/purchaseinvoices/${id}`),
