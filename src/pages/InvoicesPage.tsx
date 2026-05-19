@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, FileText, Search, Eye } from "lucide-react";
+import { Loader2, AlertCircle, FileText, Search, Eye, Mail, CheckCircle2 } from "lucide-react";
 
 export default function InvoicesPage() {
   const { user } = useAuth();
@@ -23,6 +23,8 @@ export default function InvoicesPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<SaleInvoiceDto | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [sendingId, setSendingId] = useState<number | null>(null);
+  const [emailSentId, setEmailSentId] = useState<number | null>(null);
 
   useEffect(() => {
     loadInvoices();
@@ -48,6 +50,20 @@ export default function InvoicesPage() {
       setCustomers(res.data);
     } catch {
       // non-critical
+    }
+  };
+
+  const sendEmail = async (id: number) => {
+    setSendingId(id);
+    setError(null);
+    try {
+      await saleInvoicesApi.sendEmail(id);
+      setEmailSentId(id);
+      setTimeout(() => setEmailSentId(null), 3000);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.response?.data?.title || "Failed to send email.");
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -179,9 +195,23 @@ export default function InvoicesPage() {
                     <TableCell>{new Date(inv.saleDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right font-medium">Rs.{inv.totalAmount.toFixed(2)}</TableCell>
                     <TableCell>{statusBadge(inv.paymentStatus)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-1">
                       <Button size="sm" variant="ghost" onClick={() => viewInvoice(inv.invoiceId)}>
                         <Eye className="h-4 w-4 mr-1" /> View
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => sendEmail(inv.invoiceId)}
+                        disabled={sendingId === inv.invoiceId}
+                      >
+                        {sendingId === inv.invoiceId ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : emailSentId === inv.invoiceId ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Mail className="h-4 w-4" />
+                        )}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -258,6 +288,20 @@ export default function InvoicesPage() {
                   <span>Total:</span>
                   <span>Rs.{selectedInvoice.totalAmount.toFixed(2)}</span>
                 </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  onClick={() => selectedInvoice && sendEmail(selectedInvoice.invoiceId)}
+                  disabled={sendingId === selectedInvoice?.invoiceId}
+                >
+                  {sendingId === selectedInvoice?.invoiceId ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  ) : (
+                    <Mail className="h-4 w-4 mr-1" />
+                  )}
+                  {sendingId === selectedInvoice?.invoiceId ? "Sending..." : "Email Invoice"}
+                </Button>
               </div>
             </div>
           )}
