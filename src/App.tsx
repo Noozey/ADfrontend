@@ -24,6 +24,7 @@ import { MyRequestsPage } from "./pages/customer/MyRequestsPage";
 import { ReviewsPage } from "./pages/customer/ReviewsPage";
 import ProfileEdit from "./pages/ProfileEdit";
 import { LowStockNotifications } from "./pages/LowStockNotification";
+import { VendorPurchasePage } from "./pages/PurchaseInvoice";
 
 function ProtectedRoute({
   children,
@@ -205,6 +206,14 @@ export function App() {
             element={
               <ProtectedRoute roles={["Admin"]}>
                 <FinancialReport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/purchase"
+            element={
+              <ProtectedRoute roles={["Admin"]}>
+                <VendorPurchasePage />
               </ProtectedRoute>
             }
           />
