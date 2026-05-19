@@ -161,6 +161,7 @@ export const saleInvoicesApi = {
   getById: (id: number) => api.get<SaleInvoiceDto>(`/saleinvoices/${id}`),
   getByCustomer: (customerId: string) =>
     api.get<SaleInvoiceDto[]>(`/saleinvoices/customer/${customerId}`),
+  sendEmail: (id: number) => api.post(`/saleinvoices/${id}/email`),
 };
 
 export interface HighSpenderReportDto {
