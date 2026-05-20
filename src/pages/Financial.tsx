@@ -11,26 +11,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { reportsApi, FinancialReportResponse } from "@/api/api";
+
+type ReportType = "daily" | "monthly" | "yearly";
 
 export default function FinancialReport() {
   const { user } = useAuth();
   const isAdmin = user?.roles?.includes("Admin");
 
-  const [startDate, setStartDate] = useState("2026-01-01");
-  const [endDate, setEndDate] = useState("2026-01-10");
+  const [reportType, setReportType] = useState<ReportType>("daily");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [data, setData] = useState<FinancialReportResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchReport = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Axios automatically handles the ?start=...&end=... formatting
-      const response = await reportsApi.getFinancialReport(startDate, endDate);
+      let response;
+      if (reportType === "daily") response = await reportsApi.getDaily(date);
+      else if (reportType === "monthly")
+        response = await reportsApi.getMonthly(year, month);
+      else response = await reportsApi.getYearly(year);
       setData(response.data);
-    } catch (error) {
-      console.error("Financial report error:", error);
+    } catch (err) {
+      console.error("Financial report error:", err);
+      setError("Failed to load report.");
     } finally {
       setLoading(false);
     }
@@ -54,84 +63,168 @@ export default function FinancialReport() {
     );
   }
 
+  const MONTHS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             Financial Reports
           </h1>
           <p className="text-muted-foreground">
-            Generate and analyze revenue data across specific dates.
+            Generate daily, monthly, or yearly financial summaries.
           </p>
         </div>
 
-        <div className="flex items-end gap-2">
-          <div className="grid gap-1">
-            <label className="text-xs font-medium">Start Date</label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-40"
-            />
+        {/* Controls */}
+        <div className="flex flex-col gap-3">
+          {/* Report type tabs */}
+          <div className="flex gap-1 border rounded-md p-1 w-fit">
+            {(["daily", "monthly", "yearly"] as ReportType[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => {
+                  setReportType(t);
+                  setData(null);
+                }}
+                className={`px-3 py-1 text-sm rounded capitalize transition-colors ${
+                  reportType === t
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
           </div>
-          <div className="grid gap-1">
-            <label className="text-xs font-medium">End Date</label>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-40"
-            />
+
+          {/* Dynamic inputs */}
+          <div className="flex items-end gap-2">
+            {reportType === "daily" && (
+              <div className="grid gap-1">
+                <label className="text-xs font-medium">Date</label>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+            )}
+
+            {reportType === "monthly" && (
+              <>
+                <div className="grid gap-1">
+                  <label className="text-xs font-medium">Year</label>
+                  <Input
+                    type="number"
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
+                    className="w-24"
+                    min={2000}
+                    max={2100}
+                  />
+                </div>
+                <div className="grid gap-1">
+                  <label className="text-xs font-medium">Month</label>
+                  <select
+                    value={month}
+                    onChange={(e) => setMonth(Number(e.target.value))}
+                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    {MONTHS.map((m, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+
+            {reportType === "yearly" && (
+              <div className="grid gap-1">
+                <label className="text-xs font-medium">Year</label>
+                <Input
+                  type="number"
+                  value={year}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  className="w-24"
+                  min={2000}
+                  max={2100}
+                />
+              </div>
+            )}
+
+            <Button onClick={fetchReport} disabled={loading}>
+              {loading ? "Loading..." : "Generate"}
+            </Button>
           </div>
-          <Button onClick={fetchReport} disabled={loading}>
-            {loading ? "Loading..." : "Generate"}
-          </Button>
         </div>
       </div>
 
       <hr />
 
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              Rs.{data?.totalRevenue.toFixed(2) || "0.00"}
+              Rs.{data?.totalRevenue.toFixed(2) ?? "0.00"}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               Total Expenses
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              Rs.{data?.totalExpenses.toFixed(2) || "0.00"}
+              Rs.{data?.totalExpenses.toFixed(2) ?? "0.00"}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
           </CardHeader>
           <CardContent>
             <div
-              className={`text-2xl font-bold ${data && data.netProfit >= 0 ? "text-green-600" : "text-destructive"}`}
+              className={`text-2xl font-bold ${
+                data && data.netProfit >= 0
+                  ? "text-green-600"
+                  : "text-destructive"
+              }`}
             >
-              Rs.{data?.netProfit.toFixed(2) || "0.00"}
+              Rs.{data?.netProfit.toFixed(2) ?? "0.00"}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Daily Breakdown Table */}
+      {/* Breakdown Table */}
       <Card>
         <CardHeader>
           <CardTitle>Daily Breakdown</CardTitle>

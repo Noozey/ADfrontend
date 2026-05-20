@@ -91,13 +91,6 @@ export const authApi = {
     api.post<AuthResponse>("/auth/register", { ...data, role: data.role }),
 };
 
-export const reportsApi = {
-  getFinancialReport: (start: string, end: string) =>
-    api.get<FinancialReportResponse>("/reports/financial", {
-      params: { start, end },
-    }),
-};
-
 export const partsApi = {
   getAll: () => api.get("/parts"),
   getPublic: () => api.get("/parts/public"),
@@ -371,6 +364,21 @@ export const purchaseInvoicesApi = {
   create: (data: any) => api.post("/purchaseinvoices", data),
   getAll: () => api.get("/purchaseinvoices"),
   getById: (id: number) => api.get(`/purchaseinvoices/${id}`),
+};
+
+export const reportsApi = {
+  getDaily: (date: string) =>
+    api.get<FinancialReportResponse>("/reports/financial/daily", {
+      params: { date },
+    }),
+  getMonthly: (year: number, month: number) =>
+    api.get<FinancialReportResponse>("/reports/financial/monthly", {
+      params: { year, month },
+    }),
+  getYearly: (year: number) =>
+    api.get<FinancialReportResponse>("/reports/financial/yearly", {
+      params: { year },
+    }),
 };
 
 export default api;
