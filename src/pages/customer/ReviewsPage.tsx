@@ -12,6 +12,14 @@ export function ReviewsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [review, setReview] = useState({ appointmentId: 0, content: "", rating: 5 });
+  const eligibleStatuses = new Set([
+    "completed",
+    "complete",
+    "done",
+    "fulfilled",
+    "closed",
+    "finished",
+  ]);
 
   useEffect(() => {
     loadData();
@@ -44,9 +52,17 @@ export function ReviewsPage() {
     }
   };
 
+  const normalizeStatus = (status: string) => status.trim().toLowerCase();
+
   const completedAppointments = appointments.filter(
-    (a) => a.status === "Completed" && !reviews.some((r) => r.appointmentId === a.appointmentId)
+    (a) =>
+      eligibleStatuses.has(normalizeStatus(a.status)) &&
+      !reviews.some((r) => r.appointmentId === a.appointmentId),
   );
+
+  const appointmentStatusSummary = appointments.length
+    ? Array.from(new Set(appointments.map((a) => a.status))).join(", ")
+    : "";
 
   if (loading) return <div className="p-6"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
@@ -75,7 +91,16 @@ export function ReviewsPage() {
             <div className="grid gap-1">
               <Label>Appointment</Label>
               {completedAppointments.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2">No completed appointments to review.</p>
+                <div className="space-y-2 py-2">
+                  <p className="text-sm text-muted-foreground">
+                    No completed appointments to review.
+                  </p>
+                  {appointments.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Available appointment statuses: {appointmentStatusSummary}
+                    </p>
+                  )}
+                </div>
               ) : (
                 <Select value={review.appointmentId ? String(review.appointmentId) : ""} onValueChange={(v) => setReview({ ...review, appointmentId: parseInt(v) })}>
                   <SelectTrigger><SelectValue placeholder="Select completed appointment..." /></SelectTrigger>

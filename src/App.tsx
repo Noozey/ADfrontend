@@ -23,6 +23,7 @@ import { MyAppointmentsPage } from "./pages/customer/MyAppointmentsPage";
 import { RequestPartPage } from "./pages/customer/RequestPartPage";
 import { MyRequestsPage } from "./pages/customer/MyRequestsPage";
 import { ReviewsPage } from "./pages/customer/ReviewsPage";
+import StaffReviewsPage from "./pages/StaffReviewsPage";
 import ProfileEdit from "./pages/ProfileEdit";
 import { LowStockNotifications } from "./pages/LowStockNotification";
 import { VendorPurchasePage } from "./pages/PurchaseInvoice";
@@ -127,6 +128,14 @@ export function App() {
             element={
               <ProtectedRoute roles={["Customer"]}>
                 <ReviewsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reviews/all"
+            element={
+              <ProtectedRoute roles={["Staff", "Admin"]}>
+                <StaffReviewsPage />
               </ProtectedRoute>
             }
           />

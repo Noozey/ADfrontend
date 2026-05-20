@@ -82,6 +82,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { to: "/parts", label: "Parts", icon: <Wrench className="h-4 w-4" /> },
     { to: "/customers", label: "Customers", icon: <Users className="h-4 w-4" />, activePaths: ["/customers/register"] },
     { to: "/customers/register", label: "Register Customer", icon: <UserCog className="h-4 w-4" /> },
+    { to: "/reviews/all", label: "Reviews", icon: <MessageSquareText className="h-4 w-4" /> },
     { to: "/customerreports", label: "Customer Reports", icon: <FileText className="h-4 w-4" /> },
   ];
 
