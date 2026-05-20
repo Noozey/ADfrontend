@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 
 const PAGE_SIZE = 10;
+const PAYMENT_STATUS_OPTIONS = ["Pending", "Paid", "Overdue"] as const;
 
 export default function InvoicesPage() {
   const { user } = useAuth();
@@ -168,6 +169,9 @@ export default function InvoicesPage() {
         <p className="text-muted-foreground mt-1">
           View and search all sales invoices.
         </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Payment status can be changed to Pending, Paid, or Overdue from this page.
+        </p>
       </div>
 
       {error && (
@@ -231,9 +235,11 @@ export default function InvoicesPage() {
                               <SelectValue placeholder="Change status" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Pending">Pending</SelectItem>
-                              <SelectItem value="Paid">Paid</SelectItem>
-                              <SelectItem value="Overdue">Overdue</SelectItem>
+                              {PAYMENT_STATUS_OPTIONS.map((status) => (
+                                <SelectItem key={status} value={status}>
+                                  {status}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
@@ -341,9 +347,11 @@ export default function InvoicesPage() {
                       <SelectValue placeholder="Change status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Paid">Paid</SelectItem>
-                      <SelectItem value="Overdue">Overdue</SelectItem>
+                      {PAYMENT_STATUS_OPTIONS.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
